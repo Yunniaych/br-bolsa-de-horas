@@ -1,0 +1,56 @@
+<div class="rounded-lg overflow-x-auto shadow-md border border-gray-200">
+  <table class="w-full">
+    <thead
+      class="bg-primary text-white font-semibold my-2 py-10 px-1 text-center text-balance">
+    <tr>
+      @for (column of displayColumns; track column.header) {
+        <th class="w-sm py-4">{{ column.header }}</th>
+      }
+    </tr>
+  </thead>
+  <tbody class="bg-white">
+    @for (iniciativa of iniciativas(); track iniciativa.id) {
+      <tr>
+        @for (column of displayColumns; track column.header) {
+          <td class="border-b border-gray-200 px-4 py-3 text-center">
+            @if (column.header === "Acciones") {
+              <div class="flex gap-2 justify-center">
+                <button (click)="onEditIniciativa(iniciativa.id)">
+                  <img src="icons/edit.svg" alt="Edit Icon" class="size-5" />
+                </button>
+                <button (click)="onDeleteIniciativa(iniciativa.id)">
+                  <img src="icons/trash.svg" alt="Delete Icon" class="size-5" />
+                </button>
+              </div>
+            } @else {
+              @switch (column.field) {
+                @case ("fechaAprobada") {
+                  {{ iniciativa.fechaAprobada | date: "dd/MM/yyyy" }}
+                }
+
+                @case ("estado") {
+                  <div
+                    class="text-white bg-gray-500 rounded-full py-1 px-3 mx-auto text-sm font-semibold w-fit"
+                    [class.bg-amber-500]="
+                      iniciativa.estado?.descripcion === 'Autorizado Iniciar'
+                    "
+                    [class.bg-green-500]="iniciativa.estado?.descripcion === 'Completado'"
+                    [class.bg-red-500]="iniciativa.estado?.descripcion === 'Detenido'"
+                    [class.bg-blue-500]="iniciativa.estado?.descripcion === 'En Desarrollo'"
+                    [class.bg-gray-500]="iniciativa.estado?.descripcion === 'HOLD'"
+                  >
+                    {{ iniciativa.estado?.descripcion }}
+                  </div>
+                }
+                @default {
+                  {{ column.field ? iniciativa[column.field] : "" }}
+                }
+              }
+            }
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+</table>
+</div>

@@ -1,0 +1,86 @@
+<div
+  class="rounded-lg overflow-hidden shadow-md border border-gray-200 p-6 my-5"
+>
+  <h2 class="font-semibold text-xl mb-4">Resumen de totales</h2>
+  <div class="grid gap-5 grid-cols-3 w-full">
+    <div
+      class="bg-primary-light p-4 rounded-md border-b-6 border-l-3 border-primary"
+    >
+      <h3 class="font-semibold text-lg mb-2 text-primary">Total Reservadas</h3>
+      <div class="flex border-b justify-between py-2 border-primary">
+        <p>Man Day</p>
+        <p class="font-bold text-primary text-xl">
+          {{ totales().mandayReservadas }}
+        </p>
+      </div>
+      <div class="flex justify-between py-2">
+        <p>Horas</p>
+        <p class="font-bold text-primary text-xl">
+          {{ totales().horasReservadas }}
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-terciary-light p-4 rounded-md border-b-6 border-l-3 border-terciary"
+    >
+      <h3 class="font-semibold text-lg mb-2 text-terciary">Total Consumido</h3>
+      <div class="flex justify-between border-b py-2 border-terciary">
+        <p>Man Day</p>
+        <p class="font-bold text-terciary text-xl">
+          {{ totales().mandayConsumidas }}
+        </p>
+      </div>
+      <div class="flex justify-between py-2">
+        <p>Horas</p>
+        <p class="font-bold text-terciary text-xl">
+          {{ totales().horasConsumidas }}
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-secondary-light p-4 rounded-md border-b-6 border-l-3 border-secondary"
+    >
+      <h3 class="font-semibold text-lg mb-2 text-secondary">
+        Total Aprobadas Disponibles
+      </h3>
+      <div class="flex justify-between border-b py-2 border-secondary">
+        <p>Man Day</p>
+        <p class="font-bold text-secondary text-xl">
+          {{ totales().mandayAprobadasDisponibles }}
+        </p>
+      </div>
+      <div class="flex justify-between py-2">
+        <p>Horas</p>
+        <p class="font-bold text-secondary text-xl">
+          {{ totales().horasAprobadasDisponibles }}
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-5">
+    <div
+      class="bg-linear-to-r from-primary to-secondary text-slate-200 rounded-lg p-6 my-4 shadow-md"
+    >
+      <h3 class="text-xl font-semibold mb-2">Total Contratadas</h3>
+      <p>
+        <span class="font-bold text-white text-3xl">{{
+          totales().bolsaHorasContratadas
+        }}</span>
+        Horas
+      </p>
+      <p>{{ totales().bolsaMandayContratados }} Man Days</p>
+    </div>
+    <div
+      class="bg-linear-to-r from-terciary to-orange-600 text-neutral-200 rounded-lg p-6 my-4 shadow-md"
+    >
+      <h3 class="text-xl font-semibold mb-2">Total Disponibles</h3>
+      <p>
+        <span class="font-bold text-white text-3xl">{{
+          totales().horasDisponibles
+        }}</span>
+        Horas
+      </p>
+      <p>{{ totales().mandayDisponibles }} Man Days</p>
+    </div>
+  </div>
+</div>

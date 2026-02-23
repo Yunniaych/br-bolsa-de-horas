@@ -1,0 +1,268 @@
+<div
+  class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md overflow-y-auto max-h-[90vh]"
+>
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">
+      {{ isEditMode ? "Editar Iniciativa" : "Nueva Iniciativa" }}
+    </h2>
+    <button (click)="dialogRef.close()" class="hover:cursor-pointer">
+      <img src="icons/close.svg" alt="Close Icon" class="size-4" />
+    </button>
+  </div>
+
+  <form [formGroup]="iniciativaForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <div>
+      <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">
+        Nombre de la Iniciativa <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Nombre de la iniciativa"
+      />
+      @if (
+        iniciativaForm.get("nombre")?.invalid &&
+        iniciativaForm.get("nombre")?.touched
+      ) {
+        <p class="text-red-500 text-sm mt-1 font-semibold">
+          @if (iniciativaForm.get("nombre")?.errors?.["required"]) {
+            El nombre es requerido
+          }
+          @if (iniciativaForm.get("nombre")?.errors?.["minlength"]) {
+            El nombre debe tener al menos 3 caracteres
+          }
+        </p>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Fecha Aprobada -->
+      <div>
+        <label
+          for="fechaAprobada"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Fecha Aprobada <span class="text-red-500">*</span>
+          @if (isEditMode) {
+            <span class="text-gray-500 text-xs ml-2">(No editable)</span>
+          }
+        </label>
+        <input
+          id="fechaAprobada"
+          type="text"
+          formControlName="fechaAprobada"
+          (input)="formatDateInput($event, 'fechaAprobada')"
+          inputmode="numeric"
+          placeholder="DD/MM/AAAA"
+          maxlength="10"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        />
+        @if (
+          iniciativaForm.get("fechaAprobada")?.invalid &&
+          iniciativaForm.get("fechaAprobada")?.touched
+        ) {
+          <p class="text-red-500 text-sm mt-1 font-semibold">
+            @if (iniciativaForm.get("fechaAprobada")?.errors?.["required"]) {
+              La fecha es requerida (DD/MM/AAAA)
+            }
+            @if (iniciativaForm.get("fechaAprobada")?.errors?.["futureDate"]) {
+              La fecha no puede ser futura
+            }
+          </p>
+        }
+      </div>
+
+      <!-- Estado -->
+      <div>
+        <label
+          for="estado"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Estado <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="idEstado"
+          formControlName="idEstado"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          @for (estado of estadosDisponibles; track estado.idEstado) {
+            <option [ngValue]="estado.idEstado">
+              {{ estado.descripcion }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <hr class="border-s opacity-50 border-primary" />
+    <h2 class="font-semibold mb-4">Gestión de Recursos</h2>
+    <div class="grid grid-cols-3 gap-4">
+      <!-- Sección Reservados -->
+      <div class="bg-primary-light border-primary border p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Recursos Reservados
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Man Day Reserva -->
+          <div>
+            <label
+              for="manDayReserva"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Man Day Reserva <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="manDayReserva"
+              type="number"
+              formControlName="manDayReserva"
+              step="1"
+              min="1"
+              (keydown)="preventNegativeInput($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0"
+            />
+          </div>
+          <!-- Horas Reservadas -->
+          <div>
+            <label
+              for="horasReservadas"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Horas Reservadas <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="horasReservadas"
+              type="number"
+              formControlName="HorasReservadas"
+              step="1"
+              min="0"
+              (keydown)="preventNegativeInput($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0"
+            />
+          </div>
+        </div>
+        @if (
+          iniciativaForm.get("manDayReserva")?.invalid &&
+          iniciativaForm.get("manDayReserva")?.touched
+        ) {
+          @if (iniciativaForm.get("manDayReserva")?.errors?.["min"]) {
+            <p class="text-red-500 text-sm mt-1 font-semibold">
+              Debe ser mayor o igual a 1
+            </p>
+          }
+          @if (iniciativaForm.get("manDayReserva")?.errors?.["max"]) {
+            <p class="text-red-500 text-sm mt-1 font-semibold">
+              No puede exceder la bolsa restante de {{ data.maxManDays }} Man
+              Days
+            </p>
+          }
+        }
+      </div>
+
+      <!-- Sección Consumidos -->
+      <div class="bg-terciary-light border-terciary border p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Recursos Consumidos
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Man Day Consumidos -->
+          <div>
+            <label
+              for="manDayConsumidos"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Man Day Consumidos
+            </label>
+            <input
+              id="manDayConsumidos"
+              type="number"
+              formControlName="ManDayConsumidos"
+              step="1"
+              min="0"
+              (keydown)="preventNegativeInput($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0"
+            />
+          </div>
+
+          <!-- Horas Consumidas -->
+          <div>
+            <label
+              for="horasConsumidas"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Horas Consumidas
+            </label>
+            <input
+              id="horasConsumidas"
+              type="number"
+              formControlName="HorasConsumidas"
+              step="1"
+              min="0"
+              (keydown)="preventNegativeInput($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Disponibles (Solo lectura) -->
+      <div
+        class="bg-secondary-light border-secondary border p-4 rounded-lg hover:cursor-not-allowed"
+      >
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+          Recursos Disponibles
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Man Day Disponibles</label
+            >
+            <div
+              class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-semibold"
+            >
+              {{ disponibles.mandayAprobadasDisponibles | number: "1.0-0" }}
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Horas Disponibles</label
+            >
+            <div
+              class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-semibold"
+            >
+              {{ disponibles.horasAprobadasDisponibles | number: "1.0-0" }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    @if (iniciativaForm.errors?.["consumidosExcedidos"]) {
+      <div class="-mt-3 text-red-500 text-sm font-semibold">
+        Los recursos consumidos no pueden exceder los reservados
+      </div>
+    }
+
+    <!-- Botones de acción -->
+    <div class="flex gap-4 justify-end pt-4">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="hover:cursor-pointer px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="iniciativaForm.invalid || (isEditMode && !hasFormChanged())"
+        class="hover:cursor-pointer px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+      >
+        {{ isEditMode ? "Guardar Cambios" : "Crear Iniciativa" }}
+      </button>
+    </div>
+  </form>
+</div>

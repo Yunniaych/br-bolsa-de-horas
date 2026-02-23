@@ -1,0 +1,30 @@
+<div class="font-semibold">
+  @if (item()?.ruta) {
+    <a
+      [routerLink]="item()?.ruta"
+      routerLinkActive="bg-secondary/50"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="handleClick()"
+      class="flex items-center bg-primary hover:bg-white/10 px-4 py-2 rounded"
+    >
+      <img
+        src="{{ item()?.icono }}"
+        class="size-6 mr-2"
+        alt="{{ item()?.nombre }} icon"
+      />
+      {{ item()?.nombre }}
+    </a>
+  } @else {
+    <button
+      (click)="handleClick()"
+      class="flex items-center bg-primary hover:bg-white/10 px-4 py-2 rounded w-full text-left"
+    >
+      <img
+        src="{{ item()?.icono }}"
+        class="size-6 mr-2"
+        alt="{{ item()?.nombre }} icon"
+      />
+      {{ item()?.nombre }}
+    </button>
+  }
+</div>

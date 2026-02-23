@@ -1,0 +1,21 @@
+<div class="graficas-container">
+  @if (hasData()) {
+    <div class="chart-wrapper">
+      <h3 class="chart-title">Distribución de Horas</h3>
+      <div class="chart-canvas-container">
+        <canvas #pieChartCanvas></canvas>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <h3 class="chart-title">Horas Reservadas - Últimos 6 Meses</h3>
+      <div class="chart-canvas-container">
+        <canvas #lineChartCanvas></canvas>
+      </div>
+    </div>
+  } @else {
+    <div class="no-data-message">
+      <p>No hay datos disponibles para mostrar</p>
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+<div class="grid md:grid-cols-4">
+  <div
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-gray-400"
+  >
+    <p class="text-gray-600 font-bold mb-2">TOTAL CONTRATADO</p>
+    <p class="text-gray-600 text-sm">
+      <span class="font-bold text-3xl">{{
+        kpisData()?.bolsaHorasContratadas
+      }}</span>
+      Horas
+    </p>
+    <p class="text-gray-600 text-sm">
+      {{ kpisData()?.bolsaMandayContratados }} Man Days
+    </p>
+  </div>
+  <div
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-primary"
+  >
+    <p class="text-gray-600 font-bold mb-2">TOTAL RESERVADAS</p>
+    <p class="text-gray-600 text-sm">
+      <span class="font-bold text-primary text-3xl">{{
+        kpisData()?.horasReservadas
+      }}</span>
+      Horas
+    </p>
+    <p class="text-gray-600 text-sm">
+      {{ kpisData()?.mandayReservadas }} Man Days
+    </p>
+  </div>
+  <div
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-terciary"
+  >
+    <p class="text-gray-600 font-bold mb-2">TOTAL CONSUMIDAS</p>
+    <p class="text-gray-600 text-sm">
+      <span class="font-bold text-terciary text-3xl">{{
+        kpisData()?.horasConsumidas
+      }}</span>
+      Horas
+    </p>
+    <p class="text-gray-600 text-sm">
+      {{ kpisData()?.mandayConsumidas }} Man Days
+    </p>
+  </div>
+  <div
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-secondary"
+  >
+    <p class="text-gray-600 font-bold mb-2">TOTAL DISPONIBLES</p>
+    <p class="text-gray-600 text-sm">
+      <span class="font-bold text-secondary text-3xl">{{
+        kpisData()?.horasDisponibles
+      }}</span>
+      Horas
+    </p>
+    <p class="text-gray-600 text-sm">
+      {{ kpisData()?.mandayDisponibles }} Man Days
+    </p>
+  </div>
+</div>

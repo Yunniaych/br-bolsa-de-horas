@@ -1,0 +1,26 @@
+<div class="mx-5 my-6">
+  <h1 class="font-bold text-2xl text-primary">Gestión de Iniciativas</h1>
+  @if (isAdmin()) {
+    <div class="flex justify-end mb-4">
+      <button
+        (click)="openCreateDialog()"
+        class="bg-terciary shadow-md rounded-md hover:opacity-85 hover:cursor-pointer px-4 py-2 text-white font-semibold hover:bg-opacity-90 transition"
+      >
+        <img
+          src="icons/add.svg"
+          alt="Add Icon"
+          class="size-5 inline-block mr-2"
+        />
+        Agregar Iniciativa
+      </button>
+    </div>
+  }
+
+  <app-tabla-iniciativas
+    [iniciativas]="iniciativas()"
+    [isAdmin]="isAdmin()"
+    (editIniciativa)="onEditIniciativa($event)"
+    (deleteIniciativa)="onDeleteIniciativa($event)"
+  ></app-tabla-iniciativas>
+  <app-totales [totales]="totalesData()"></app-totales>
+</div>

@@ -1,0 +1,32 @@
+<div class="mx-5 my-6">
+  <h1 class="font-bold text-2xl text-primary">Gestión de Bolsas</h1>
+  <div class="flex justify-between mb-4 items-center">
+    <div
+      class="flex gap-2 items-center rounded-md bg-linear-to-r from-primary to-secondary text-white border px-2 py-1"
+    >
+      <img src="icons/hour.svg" alt="Hour Icon" class="size-4 inline-block" />
+      <p>{{ totalHoras() }} Horas Activas</p>
+    </div>
+    @if (isAdmin()) {
+      <button
+        (click)="openCreateDialog()"
+        class="bg-terciary shadow-md rounded-md hover:opacity-85 hover:cursor-pointer px-4 py-2 text-white font-semibold hover:bg-opacity-90 transition"
+      >
+        <img
+          src="icons/add.svg"
+          alt="Add Icon"
+          class="size-5 inline-block mr-2"
+        />
+        Agregar Bolsa
+      </button>
+    }
+  </div>
+  @for (bolsa of bolsas(); track bolsa.idBolsa) {
+    <app-bolsa-card
+      [bolsa]="bolsa"
+      [isAdmin]="isAdmin()"
+      (editBolsa)="onEditBolsa($event)"
+      (deleteBolsa)="onDeleteBolsa($event)"
+    ></app-bolsa-card>
+  }
+</div>

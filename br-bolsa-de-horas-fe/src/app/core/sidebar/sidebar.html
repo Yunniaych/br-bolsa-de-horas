@@ -1,0 +1,22 @@
+<div class="bg-primary flex flex-col text-white h-screen w-full p-4">
+  <div class="flex items-center mb-2">
+    <button
+      (click)="sidebarService.close()"
+      class="mr-4 p-2 hover:bg-white/10 rounded"
+    >
+      <img src="icons/sidebar.svg" alt="sidebar" class="size-6" />
+    </button>
+    <h1 class="font-bold text-xl">Menú</h1>
+  </div>
+  <hr class="border-x border-white my-2" />
+  <ul>
+    @for (item of this.sidebaritems; track item.nombre) {
+      <li class="py-1">
+        <app-sidebar-component [item]="item"></app-sidebar-component>
+      </li>
+    }
+  </ul>
+  <div class="mt-auto">
+    <app-sidebar-component [item]="logoutItem"></app-sidebar-component>
+  </div>
+</div>

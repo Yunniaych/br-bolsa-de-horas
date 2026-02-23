@@ -1,0 +1,67 @@
+<div
+  class="mb-4 p-4 flex rounded-lg shadow-md border-l-6 border border-gray-200"
+  [class.border-l-red-500]="bolsa()?.estado?.descripcion === 'Caducada'"
+  [class.border-l-yellow-500]="
+    bolsa()?.estado?.descripcion === 'Próxima a Caducar'
+  "
+  [class.border-l-green-700]="bolsa()?.estado?.descripcion === 'Activa'"
+>
+  <div class="flex-grow">
+    <div class="items-center">
+      <img
+        src="icons/bolsas-grey.svg"
+        alt="Bolsa Icon"
+        class="size-6 inline-block mr-2"
+      />
+      <span class="font-semibold text-lg">{{ bolsa()?.nombreBolsa }}</span>
+      <div
+        [class.bg-red-300]="bolsa()?.estado?.descripcion === 'Caducada'"
+        [class.bg-yellow-300]="
+          bolsa()?.estado?.descripcion === 'Próxima a Caducar'
+        "
+        [class.bg-green-300]="bolsa()?.estado?.descripcion === 'Activa'"
+        class="inline-block ml-4 px-2 py-1 opacity-85 rounded-full text-sm font-medium"
+      >
+        <p>{{ bolsa()?.estado?.descripcion }}</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-4">
+      <div>
+        <p class="text-sm text-gray-600">Horas Contratadas:</p>
+        <p class="font-bold text-md">{{ bolsa()?.horasContratadas }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">Man Day Contratadas:</p>
+        <p class="font-bold text-md">{{ bolsa()?.mandayContratados }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">Fecha de Inicio:</p>
+        <p class="font-bold text-md">
+          {{ bolsa()?.fechaInicio | date: "dd/MM/yyyy" }}
+        </p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-600">Fecha Termino:</p>
+        <p class="font-bold text-md">
+          {{ bolsa()?.fechaFin | date: "dd/MM/yyyy" }}
+        </p>
+      </div>
+    </div>
+  </div>
+  @if (isAdmin()) {
+    <div class="flex gap-2 justify-center">
+      <button
+        class="hover:cursor-pointer"
+        (click)="onEditBolsa(bolsa()?.idBolsa)"
+      >
+        <img src="icons/edit.svg" alt="Edit Icon" class="size-5" />
+      </button>
+      <button
+        class="hover:cursor-pointer"
+        (click)="onDeleteBolsa(bolsa()?.idBolsa)"
+      >
+        <img src="icons/trash.svg" alt="Delete Icon" class="size-5" />
+      </button>
+    </div>
+  }
+</div>
