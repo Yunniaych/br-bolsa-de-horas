@@ -1,0 +1,95 @@
+services:
+  # ============================
+  # PostgreSQL + PostGIS Database
+  # ============================
+  db:
+    image: postgis/postgis:18-3.6
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bolsa-horas-network
+
+  # ============================
+  # Keycloak Authentication Server
+  # ============================
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak_db
+      KC_DB_USERNAME: ${DB_USER}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak-config:/opt/keycloak/data/import
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bolsa-horas-network
+
+  # ============================
+  # Backend API (Node.js/Express)
+  # ============================
+  backend:
+    build:
+      context: ./br-bolsa-de-horas-be
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      NODE_ENV: production
+      PORT: 3000
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: bolsa-horas
+      KEYCLOAK_CLIENT_ID: bolsa-horas-backend
+      CORS_ORIGIN: http://localhost:4200
+      SESSION_SECRET: ${SESSION_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - keycloak
+    networks:
+      - bolsa-horas-network
+    restart: unless-stopped
+
+  # ============================
+  # Frontend (Angular + Nginx)
+  # ============================
+  frontend:
+    build:
+      context: ./br-bolsa-de-horas-fe
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+      - keycloak
+    networks:
+      - bolsa-horas-network
+    restart: unless-stopped
+
+networks:
+  bolsa-horas-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

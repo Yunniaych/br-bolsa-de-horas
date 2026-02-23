@@ -1,0 +1,92 @@
+# Node deps (root + workspaces)
+node_modules/
+**/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Build outputs
+dist/
+build/
+out/
+**/dist/
+**/build/
+**/out/
+
+# Frontend (Angular) specific
+/br-bolsa-de-horas-fe/dist/
+/br-bolsa-de-horas-fe/.angular/
+/br-bolsa-de-horas-fe/.angular/cache/
+/br-bolsa-de-horas-fe/main-*.js
+/br-bolsa-de-horas-fe/runtime-*.js
+/br-bolsa-de-horas-fe/polyfills-*.js
+/br-bolsa-de-horas-fe/styles-*.css
+/br-bolsa-de-horas-fe/*.map
+
+# Backend build / runtime
+/be/dist/
+/be/build/
+/be/.env.local
+/be/node_modules/
+
+# Prisma client (generated)
+prisma/client/
+**/prisma/client/
+
+# Environment / secrets
+.env
+.env.*
+secrets.json
+*.key
+*.pem
+
+# Docker
+docker-compose.override.yml
+**/docker/data/
+**/docker/*.local
+**/docker/*.env
+
+# Database runtime files / temporary DB files
+*.sqlite
+*.db
+/*.pid
+/*.seed
+
+# Keycloak or other local service data directories
+**/keycloak-data/
+**/postgres-data/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage & test artifacts
+coverage/
+coverage-*/ 
+.nyc_output/
+jest-*.json
+
+# Temporary / cache
+tmp/
+temp/
+.cache/
+*.tmp
+
+# Generated archives / bundles
+*.tgz
+*.zip
+
+# Keep repository clean: allow .gitkeep
+!.gitkeep

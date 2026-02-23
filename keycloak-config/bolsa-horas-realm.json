@@ -1,0 +1,99 @@
+{
+  "realm": "bolsa-horas",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Rol de administrador con acceso completo"
+      },
+      {
+        "name": "user",
+        "description": "Rol de usuario con acceso de solo lectura"
+      }
+    ]
+  },
+
+  "clients": [
+    {
+      "clientId": "bolsa-horas-frontend",
+      "name": "Bolsa de Horas Frontend",
+      "description": "Angular frontend application",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": ["http://localhost:4200/*", "http://localhost/*"],
+      "webOrigins": ["http://localhost:4200", "http://localhost"],
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    },
+    {
+      "clientId": "bolsa-horas-backend",
+      "name": "Bolsa de Horas Backend",
+      "description": "Node.js backend API",
+      "enabled": true,
+      "bearerOnly": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "email": "admin@bolsahoras.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin"],
+      "requiredActions": []
+    },
+    {
+      "username": "usuario",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Usuario",
+      "lastName": "Normal",
+      "email": "usuario@bolsahoras.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"],
+      "requiredActions": []
+    }
+  ],
+
+  "scopeMappings": [],
+  "clientScopeMappings": {},
+  "defaultRoles": ["user"]
+}

@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================
+// TABLAS DE ESTADOS
+// ============================
+
+model EstadoIniciativa {
+  idEstado    Int          @id @default(autoincrement()) @map("id_estado")
+  descripcion String       @unique @db.VarChar(50)
+  iniciativas Iniciativa[]
+
+  @@map("estado_iniciativa")
+}
+
+model EstadoBolsa {
+  idEstado    Int          @id @default(autoincrement()) @map("id_estado")
+  descripcion String       @unique @db.VarChar(50)
+  bolsas      BolsaHoras[]
+
+  @@map("estado_bolsa")
+}
+
+// ============================
+// BOLSA HORAS
+// ============================
+
+model BolsaHoras {
+  idBolsa            Int         @id @default(autoincrement()) @map("id_bolsa")
+  nombreBolsa        String      @map("nombre_bolsa") @db.VarChar(100)
+  fechaInicio        DateTime    @map("fecha_inicio") @db.Date
+  fechaFin           DateTime    @map("fecha_fin") @db.Date
+  horasContratadas   Decimal     @map("horas_contratadas") @db.Decimal(10, 2)
+  mandayContratados  Decimal     @map("manday_contratados") @db.Decimal(10, 2)
+  idEstado           Int         @map("id_estado")
+  estado             EstadoBolsa @relation(fields: [idEstado], references: [idEstado])
+
+  @@map("bolsa_horas")
+}
+
+// ============================
+// INICIATIVA
+// ============================
+
+model Iniciativa {
+  id                         Int               @id @default(autoincrement())
+  nombre                     String            @db.VarChar(150)
+  fechaAprobada              DateTime          @map("fecha_aprobada") @db.Date
+  idEstado                   Int               @map("id_estado")
+  mandayReservadas           Decimal?          @map("manday_reservadas") @db.Decimal(10, 2)
+  horasReservadas            Decimal?          @map("horas_reservadas") @db.Decimal(10, 2)
+  mandayConsumidos           Decimal?          @map("manday_consumidos") @db.Decimal(10, 2)
+  horasConsumidas            Decimal?          @map("horas_consumidas") @db.Decimal(10, 2)
+  mandayAprobadasDisponibles Decimal?          @map("manday_aprobadas_disponibles") @db.Decimal(10, 2)
+  horasAprobadasDisponibles  Decimal?          @map("horas_aprobadas_disponibles") @db.Decimal(10, 2)
+  estado                     EstadoIniciativa  @relation(fields: [idEstado], references: [idEstado])
+
+  @@map("iniciativa")
+}
+
+// ============================
+// TOTALES
+// ============================
+
+model Totales {
+  idTotales                  Int     @id @default(autoincrement()) @map("id_totales")
+  mandayReservadas           Decimal? @map("manday_reservadas") @db.Decimal(10, 2)
+  horasReservadas            Decimal? @map("horas_reservadas") @db.Decimal(10, 2)
+  mandayConsumidas           Decimal? @map("manday_consumidas") @db.Decimal(10, 2)
+  horasConsumidas            Decimal? @map("horas_consumidas") @db.Decimal(10, 2)
+  mandayAprobadasDisponibles Decimal? @map("manday_aprobadas_disponibles") @db.Decimal(10, 2)
+  horasAprobadasDisponibles  Decimal? @map("horas_aprobadas_disponibles") @db.Decimal(10, 2)
+  bolsaHorasContratadas      Decimal? @map("bolsa_horas_contratadas") @db.Decimal(10, 2)
+  bolsaMandayContratados     Decimal? @map("bolsa_manday_contratados") @db.Decimal(10, 2)
+  horasDisponibles           Decimal? @map("horas_disponibles") @db.Decimal(10, 2)
+  mandayDisponibles          Decimal? @map("manday_disponibles") @db.Decimal(10, 2)
+
+  @@map("totales")
+}
+
+// ============================
+// PARAMETROS SISTEMA
+// ============================
+
+model ParametrosSistema {
+  clave        String    @id @db.VarChar(50)
+  valorNum     Decimal?  @map("valor_num") @db.Decimal
+  valorTexto   String?   @map("valor_texto") @db.VarChar(100)
+  descripcion  String?   @db.VarChar(200)
+  fechaUpdate  DateTime? @default(now()) @map("fecha_update") @db.Date
+
+  @@map("parametros_sistema")
+}
