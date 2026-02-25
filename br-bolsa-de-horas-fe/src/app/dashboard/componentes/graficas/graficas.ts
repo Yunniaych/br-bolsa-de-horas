@@ -132,11 +132,7 @@ export class Graficas implements AfterViewInit {
               totales.horasConsumidas,
               totales.horasAprobadasDisponibles,
             ],
-            backgroundColor: [
-              '#01AFF1',
-              '#F7941F',
-              '#264D72',
-            ],
+            backgroundColor: ['#264D72', '#F7941F', '#01AFF1'],
           },
         ],
       },

@@ -46,7 +46,11 @@ export class IniciativasPage implements OnInit {
 
   loadIniciativas() {
     this.iniciativaService.getIniciativas().subscribe((iniciativas) => {
-      this.iniciativas.set(iniciativas);
+      // Ensure stable order: older (smaller id) -> newer (larger id)
+      const sorted = iniciativas
+        .slice()
+        .sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+      this.iniciativas.set(sorted);
     });
   }
 

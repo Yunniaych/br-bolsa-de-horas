@@ -31,9 +31,7 @@
                 @case ("estado") {
                   <div
                     class="text-white bg-gray-500 rounded-full py-1 px-3 mx-auto text-sm font-semibold w-fit"
-                    [class.bg-amber-500]="
-                      iniciativa.estado?.descripcion === 'Autorizado Iniciar'
-                    "
+                    [class.bg-amber-500]="iniciativa.estado?.descripcion === 'Autorizado Iniciar'"
                     [class.bg-green-500]="iniciativa.estado?.descripcion === 'Completado'"
                     [class.bg-red-500]="iniciativa.estado?.descripcion === 'Detenido'"
                     [class.bg-blue-500]="iniciativa.estado?.descripcion === 'En Desarrollo'"

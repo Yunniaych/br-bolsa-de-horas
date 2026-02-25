@@ -12,6 +12,7 @@ import {
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
+import { DatePickerDirective } from '../../../shared/directives/date-picker-directive';
 
 export interface IniciativaDialogData {
   iniciativa?: iniciativaModel;
@@ -21,7 +22,7 @@ export interface IniciativaDialogData {
 
 @Component({
   selector: 'app-iniciativas-form',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DatePickerDirective],
   templateUrl: './iniciativas-form.html',
   styleUrl: './iniciativas-form.scss',
 })
@@ -41,35 +42,33 @@ export class IniciativasForm implements OnInit {
   private isCalculating = false;
   private initialFormValues: any;
 
+  onFechaAprobadaChange(date: Date | null) {
+    this.iniciativaForm.get('fechaAprobada')?.setValue(date);
+    this.iniciativaForm.get('fechaAprobada')?.markAsTouched();
+  }
+
   constructor() {
     this.isEditMode = this.data.mode === 'edit';
   }
 
   ngOnInit() {
-    // Create form synchronously so template bindings don't try to access undefined controls
     this.initForm();
-    this.setupFormListeners();
 
     this.estadosService.getEstadosIniciativa().subscribe((estados) => {
-      this.estadosDisponibles = estados;
-      // debug logs removed
-
-      // If form has no idEstado yet, set a sensible default from loaded estados
-      const currentId = this.iniciativaForm.get('idEstado')?.value;
-      if ((currentId === null || currentId === undefined) && this.estadosDisponibles.length > 0) {
-        this.iniciativaForm.patchValue({ idEstado: this.estadosDisponibles[0].idEstado }, { emitEvent: false });
-      }
-
-      if (this.isEditMode && this.data.iniciativa) {
-        this.loadIniciativaData(this.data.iniciativa);
-      }
-    });
+    this.estadosDisponibles = estados;
+    if (estados.length > 0) {
+      this.iniciativaForm.get('idEstado')?.setValue(estados[0].idEstado);
+    }
+    this.setupFormListeners();
+    if (this.isEditMode && this.data.iniciativa) {
+      this.loadIniciativaData(this.data.iniciativa);
+    }
+  });
   }
 
   private initForm() {
-    const today = this.formatDateToDisplay(
-      new Date().toISOString().split('T')[0],
-    );
+    
+    const today = new Date();
     const defaultEstado =
       this.estadosDisponibles.length > 0
         ? this.estadosDisponibles[0].idEstado
@@ -216,6 +215,14 @@ export class IniciativasForm implements OnInit {
     );
 
     const EPS = 1e-6;
+    console.log(
+      '[iniciativas-form] checkCompletado reservados=',
+      reservados,
+      'consumidos=',
+      consumidos,
+      'estado=',
+      estadoObj?.descripcion,
+    );
 
     // If consumidos equals reservados (and >0) -> mark as Completado (use tolerance)
     if (reservados > 0 && Math.abs(consumidos - reservados) <= EPS) {
@@ -243,6 +250,9 @@ export class IniciativasForm implements OnInit {
       idEstadoActual === estadoCompletado.idEstado
     ) {
       this.isCalculating = true;
+      console.log(
+        '[iniciativas-form] consumidos < reservados and state is Completado -> reverting state',
+      );
       // try to restore initial idEstado if available and different
       const initialId = this.initialFormValues?.idEstado;
       if (initialId && initialId !== idEstadoActual) {
@@ -268,9 +278,6 @@ export class IniciativasForm implements OnInit {
   }
 
   private loadIniciativaData(iniciativa: iniciativaModel) {
-    const fechaFormatted = this.formatDateToDisplay(
-      new Date(iniciativa.fechaAprobada).toISOString().split('T')[0],
-    );
     const estadoObj = this.estadosDisponibles.find(
       (e) => e.idEstado === iniciativa.idEstado,
     );
@@ -279,7 +286,7 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm.patchValue(
       {
         nombre: iniciativa.nombre,
-        fechaAprobada: fechaFormatted,
+        fechaAprobada: new Date(iniciativa.fechaAprobada),
         idEstado: estadoObj ? estadoObj.idEstado : null,
         manDayReserva: iniciativa.mandayReservadas,
         HorasReservadas: iniciativa.horasReservadas,
@@ -297,70 +304,20 @@ export class IniciativasForm implements OnInit {
   }
 
   private maxDateValidator() {
-    return (control: AbstractControl): ValidationErrors | null => {
-      if (!control.value) return null;
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
 
-      const isoDate = this.formatDateToISO(control.value);
-      if (!isoDate) return { invalidDate: true };
+    // Acepta tanto Date como string
+    const selectedDate = new Date(control.value);
+    if (isNaN(selectedDate.getTime())) return { invalidDate: true };
 
-      const selectedDate = new Date(isoDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      return selectedDate > today ? { futureDate: true } : null;
-    };
-  }
+    return selectedDate > today ? { futureDate: true } : null;
+  };
+}
 
-  // Convierte DD/MM/YYYY a YYYY-MM-DD
-  private formatDateToISO(dateStr: string): string | null {
-    if (!dateStr) return null;
-
-    // Si ya está en formato ISO (YYYY-MM-DD)
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      return dateStr;
-    }
-
-    // Si está en formato DD/MM/YYYY
-    const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (match) {
-      const [, day, month, year] = match;
-      return `${year}-${month}-${day}`;
-    }
-
-    return null;
-  }
-
-  // Convierte YYYY-MM-DD a DD/MM/YYYY
-  private formatDateToDisplay(isoDate: string): string {
-    if (!isoDate) return '';
-
-    const match = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (match) {
-      const [, year, month, day] = match;
-      return `${day}/${month}/${year}`;
-    }
-
-    return isoDate;
-  }
-
-  // Auto-formatea mientras el usuario escribe
-  formatDateInput(event: Event, controlName: string) {
-    const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, ''); // Solo números
-
-    if (value.length >= 2) {
-      value = value.substring(0, 2) + '/' + value.substring(2);
-    }
-    if (value.length >= 5) {
-      value = value.substring(0, 5) + '/' + value.substring(5);
-    }
-    if (value.length > 10) {
-      value = value.substring(0, 10);
-    }
-
-    this.iniciativaForm.get(controlName)?.setValue(value, { emitEvent: false });
-    input.value = value;
-  }
 
   private consumidosNoExcedanReservados() {
     return (formGroup: AbstractControl): ValidationErrors | null => {
@@ -389,17 +346,9 @@ export class IniciativasForm implements OnInit {
     if (this.iniciativaForm.valid) {
       const formValue = this.iniciativaForm.getRawValue();
 
-      // Convertir fecha de DD/MM/YYYY a Date object
-      const fechaAprobadaISO = this.formatDateToISO(formValue.fechaAprobada);
-
-      if (!fechaAprobadaISO) {
-        alert('Por favor, ingrese una fecha válida en formato DD/MM/AAAA');
-        return;
-      }
-
       const iniciativa: Omit<iniciativaModel, 'id'> = {
         ...formValue,
-        fechaAprobada: new Date(fechaAprobadaISO),
+        fechaAprobada: new Date(formValue.fechaAprobada),
         mandayAprobadasDisponibles: this.disponibles.mandayAprobadasDisponibles,
         horasAprobadasDisponibles: this.disponibles.horasAprobadasDisponibles,
         estado: undefined, // No enviar string estado, solo idEstado
@@ -409,7 +358,7 @@ export class IniciativasForm implements OnInit {
         const updatedIniciativa: iniciativaModel = {
           id: this.data.iniciativa.id,
           nombre: formValue.nombre,
-          fechaAprobada: new Date(fechaAprobadaISO),
+          fechaAprobada: new Date(formValue.fechaAprobada),
           idEstado: Number(formValue.idEstado),
           mandayReservadas: Number(
             formValue.mandayReservadas ?? formValue.manDayReserva ?? 0,
@@ -444,7 +393,7 @@ export class IniciativasForm implements OnInit {
           });
       }
     } else {
-      // form invalid - debug log removed
+      console.log('Formulario inválido', this.iniciativaForm.errors);
       this.iniciativaForm.markAllAsTouched();
     }
   }

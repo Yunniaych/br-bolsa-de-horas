@@ -43,7 +43,11 @@ export class GestionBolsasPage implements OnInit {
 
   loadBolsas() {
     this.bolsasService.getBolsas().subscribe((bolsas) => {
-      this.bolsas.set(bolsas);
+      // Ensure stable order: older (smaller idBolsa) -> newer (larger idBolsa)
+      const sorted = bolsas
+        .slice()
+        .sort((a, b) => (a.idBolsa ?? 0) - (b.idBolsa ?? 0));
+      this.bolsas.set(sorted);
     });
   }
 

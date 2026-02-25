@@ -1,0 +1,55 @@
+// Hacer que mat-form-field ocupe el ancho completo y quite padding extra
+.date-field {
+  // Eliminar el espacio inferior que agrega Material por defecto
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  // Igualar altura al resto de tus inputs de Tailwind (~42px)
+  .mat-mdc-text-field-wrapper {
+    padding: 0 !important;
+  }
+
+  .mat-mdc-form-field-infix {
+    padding: 8px 16px !important;
+    min-height: unset !important;
+  }
+
+  // Color del borde igual a border-gray-300 de Tailwind
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: #d1d5db !important;
+    border-radius: 8px;
+  }
+
+  // Hover
+  &:hover {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #9ca3af !important;
+    }
+  }
+
+  // Focus — igual al ring-blue-500 de Tailwind
+  &.mat-focused {
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #3b82f6 !important;
+      border-width: 2px !important;
+    }
+  }
+
+  // Tamaño del texto igual al resto
+  input {
+    font-size: 0.875rem;
+    color: #374151;
+  }
+
+  // Ícono del calendario en gris
+  .mat-datepicker-toggle {
+    color: #6b7280;
+  }
+}

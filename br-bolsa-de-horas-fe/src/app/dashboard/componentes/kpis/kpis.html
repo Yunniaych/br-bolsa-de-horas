@@ -1,4 +1,4 @@
-<div class="grid md:grid-cols-4">
+<div class="grid md:grid-cols-5">
   <div
     class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-gray-400"
   >
@@ -14,11 +14,11 @@
     </p>
   </div>
   <div
-    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-primary"
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-black"
   >
     <p class="text-gray-600 font-bold mb-2">TOTAL RESERVADAS</p>
     <p class="text-gray-600 text-sm">
-      <span class="font-bold text-primary text-3xl">{{
+      <span class="font-bold text-black text-3xl">{{
         kpisData()?.horasReservadas
       }}</span>
       Horas
@@ -44,9 +44,23 @@
   <div
     class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-secondary"
   >
-    <p class="text-gray-600 font-bold mb-2">TOTAL DISPONIBLES</p>
+    <p class="text-gray-600 font-bold mb-2">TOTAL APROB. DISP.</p>
     <p class="text-gray-600 text-sm">
       <span class="font-bold text-secondary text-3xl">{{
+        kpisData()?.horasAprobadasDisponibles
+      }}</span>
+      Horas
+    </p>
+    <p class="text-gray-600 text-sm">
+      {{ kpisData()?.mandayAprobadasDisponibles }} Man Days
+    </p>
+  </div>
+  <div
+    class="border border-gray-200 rounded-lg p-5 m-2 shadow-md flex flex-col border-l-4 border-l-primary"
+  >
+    <p class="text-gray-600 font-bold mb-2">TOTAL DISPONIBLES</p>
+    <p class="text-gray-600 text-sm">
+      <span class="font-bold text-primary text-3xl">{{
         kpisData()?.horasDisponibles
       }}</span>
       Horas
