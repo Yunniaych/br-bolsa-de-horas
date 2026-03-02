@@ -11,7 +11,6 @@ import {
 import flatpickr from 'flatpickr';
 import { Spanish } from 'flatpickr/dist/l10n/es';
 import { Instance } from 'flatpickr/dist/types/instance';
-import { toDateString } from '../utils/date.utils';
 
 @Directive({
   selector: '[appDatePickerDirective]',
@@ -74,18 +73,29 @@ export class DatePickerDirective implements OnInit, OnDestroy {
       minDate: this.minDate(),
       maxDate: this.maxDate(),
       defaultDate: this.defaultDate(),
-      onChange: (dates) => {
-        this.dateChange.emit(dates[0] ? toDateString(dates[0]) : null);
+      // Evitar que flatpickr parsee ISO strings como UTC midnight.
+      // new Date("2026-03-02") → UTC midnight → en UTC-4 muestra día anterior.
+      // Con esta override, "2026-03-02" crea new Date(2026,2,2) = medianoche LOCAL.
+      parseDate: (dateStr: string) => {
+        if (dateStr === 'today') return new Date();
+        const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          return new Date(+isoMatch[1], +isoMatch[2] - 1, +isoMatch[3]);
+        }
+        return new Date(dateStr);
+      },
+      onChange: (dates, dateStr) => {
+        if (!dates[0] || !dateStr) {
+          this.dateChange.emit(null);
+          return;
+        }
+        // dateStr is already in 'd/m/Y' format (e.g. "05/03/2026").
+        // Parse it back to YYYY-MM-DD without creating a Date object,
+        // avoiding all timezone / UTC-midnight off-by-one issues.
+        const parts = dateStr.split('/'); // [dd, mm, yyyy]
+        this.dateChange.emit(`${parts[2]}-${parts[1]}-${parts[0]}`);
       },
     }) as Instance;
-
-    // Si ya llega defaultDate antes de que se haya inicializado flatpickr
-    // (caso caché síncrona: el effect del constructor se disparó con fp=undefined),
-    // aplicarlo ahora directamente.
-    const initial = this.defaultDate();
-    if (initial) {
-      this.fp.setDate(initial, false);
-    }
 
     console.log('Flatpickr instancia:', this.fp);
   }

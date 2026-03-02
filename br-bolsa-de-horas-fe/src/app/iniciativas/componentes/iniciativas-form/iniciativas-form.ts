@@ -12,6 +12,7 @@ import {
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
+import { ChangeDetectorRef } from '@angular/core';
 import { DatePickerDirective } from '../../../shared/directives/date-picker-directive';
 import { toDateString, todayString } from '../../../shared/utils/date.utils';
 
@@ -36,6 +37,7 @@ export class IniciativasForm implements OnInit {
   estadosDisponibles: Estado[] = [];
 
   private fb = inject(FormBuilder);
+  private cdr = inject(ChangeDetectorRef);
 
   dialogRef = inject(DialogRef<iniciativaModel>);
   data: IniciativaDialogData = inject(DIALOG_DATA);
@@ -302,8 +304,10 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm.get('fechaAprobada')?.disable({ emitEvent: false });
     this.initialFormValues = this.iniciativaForm.getRawValue();
     this.isCalculating = false;
-    // Actualizar el picker directamente ya que el control está deshabilitado
-    // y el binding del template no dispara el effect correctamente
+    // Forzar detección de cambios para que el binding [defaultDate] en el template
+    // recoja el nuevo valor del control (patchValue usó emitEvent:false + disable).
+    this.cdr.detectChanges();
+    // Actualizar el picker directamente como respaldo por si el effect no dispara.
     const fecha = toDateString(iniciativa.fechaAprobada);
     setTimeout(() => this.datePicker?.setDate(fecha));
   }

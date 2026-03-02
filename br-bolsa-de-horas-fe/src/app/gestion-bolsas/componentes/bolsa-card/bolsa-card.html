@@ -37,13 +37,13 @@
       <div>
         <p class="text-sm text-gray-600">Fecha de Inicio:</p>
         <p class="font-bold text-md">
-          {{ bolsa()?.fechaInicio | date: "dd/MM/yyyy" }}
+          {{ bolsa()?.fechaInicio | date: "dd/MM/yyyy" : 'UTC' }}
         </p>
       </div>
       <div>
         <p class="text-sm text-gray-600">Fecha Termino:</p>
         <p class="font-bold text-md">
-          {{ bolsa()?.fechaFin | date: "dd/MM/yyyy" }}
+          {{ bolsa()?.fechaFin | date: "dd/MM/yyyy" : 'UTC' }}
         </p>
       </div>
     </div>

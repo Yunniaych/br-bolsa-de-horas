@@ -25,7 +25,7 @@
             } @else {
               @switch (column.field) {
                 @case ("fechaAprobada") {
-                  {{ iniciativa.fechaAprobada | date: "dd/MM/yyyy" }}
+                  {{ iniciativa.fechaAprobada | date: "dd/MM/yyyy" : 'UTC' }}
                 }
 
                 @case ("estado") {
