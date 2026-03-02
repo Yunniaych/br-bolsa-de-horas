@@ -44,8 +44,7 @@ export class IniciativasPage implements OnInit {
     const finDate = fin ? this._parseDate(fin) : null;
 
     return all.filter((i) => {
-      const f = new Date(i.fechaAprobada);
-      f.setHours(0, 0, 0, 0);
+      const f = this._parseDate(i.fechaAprobada.substring(0, 10));
       if (iniDate && f < iniDate) return false;
       if (finDate && f > finDate) return false;
       return true;

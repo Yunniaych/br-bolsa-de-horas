@@ -52,10 +52,8 @@ export class GestionBolsasPage implements OnInit {
     const finDate = fin ? this._parseDate(fin) : null;
 
     return all.filter((b) => {
-      const bInicio = new Date(b.fechaInicio);
-      const bFin = new Date(b.fechaFin);
-      bInicio.setHours(0, 0, 0, 0);
-      bFin.setHours(0, 0, 0, 0);
+      const bInicio = this._parseDate(b.fechaInicio.substring(0, 10));
+      const bFin = this._parseDate(b.fechaFin.substring(0, 10));
 
       // Excluir si la bolsa termina antes de que empiece el rango
       if (finDate && bInicio > finDate) return false;

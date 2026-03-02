@@ -60,15 +60,15 @@ export class IniciativasForm implements OnInit {
     this.initForm();
 
     this.estadosService.getEstadosIniciativa().subscribe((estados) => {
-    this.estadosDisponibles = estados;
-    if (estados.length > 0) {
-      this.iniciativaForm.get('idEstado')?.setValue(estados[0].idEstado);
-    }
-    this.setupFormListeners();
-    if (this.isEditMode && this.data.iniciativa) {
-      this.loadIniciativaData(this.data.iniciativa);
-    }
-  });
+      this.estadosDisponibles = estados;
+      if (estados.length > 0) {
+        this.iniciativaForm.get('idEstado')?.setValue(estados[0].idEstado);
+      }
+      this.setupFormListeners();
+      if (this.isEditMode && this.data.iniciativa) {
+        this.loadIniciativaData(this.data.iniciativa);
+      }
+    });
   }
 
   private initForm() {
@@ -79,7 +79,10 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm = this.fb.group(
       {
         nombre: ['', [Validators.required, Validators.minLength(3)]],
-        fechaAprobada: [this.isEditMode ? null : todayString(), [Validators.required, this.maxDateValidator()]],
+        fechaAprobada: [
+          this.isEditMode ? null : todayString(),
+          [Validators.required, this.maxDateValidator()],
+        ],
         idEstado: [defaultEstado, Validators.required],
         manDayReserva: [
           1,
@@ -313,15 +316,14 @@ export class IniciativasForm implements OnInit {
   }
 
   private maxDateValidator() {
-  return (control: AbstractControl): ValidationErrors | null => {
-    if (!control.value) return null;
-    const selected: string = (control.value as string).substring(0, 10);
-    const t = new Date();
-    const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-    return selected > todayStr ? { futureDate: true } : null;
-  };
-}
-
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) return null;
+      const selected: string = (control.value as string).substring(0, 10);
+      const t = new Date();
+      const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+      return selected > todayStr ? { futureDate: true } : null;
+    };
+  }
 
   private consumidosNoExcedanReservados() {
     return (formGroup: AbstractControl): ValidationErrors | null => {
