@@ -4,6 +4,7 @@ import {
   inject,
   input,
   output,
+  effect,
   OnInit,
   OnDestroy,
 } from '@angular/core';
@@ -21,7 +22,19 @@ export class DatePickerDirective implements OnInit, OnDestroy {
   minDate = input<Date | string | undefined>(undefined);
   maxDate = input<Date | string | undefined>(undefined);
   defaultDate = input<Date | undefined>(undefined);
+  /** Incrementar este valor para limpiar el picker programáticamente */
+  clearTrigger = input<number>(0);
   dateChange = output<Date | null>();
+
+  constructor() {
+    // Cuando clearTrigger cambia (> 0), limpiar la instancia de flatpickr
+    effect(() => {
+      const trigger = this.clearTrigger();
+      if (trigger > 0 && this.fp) {
+        this.fp.clear();
+      }
+    });
+  }
 
   ngOnInit() {
     console.log('Directiva iniciada en:', this.el.nativeElement);

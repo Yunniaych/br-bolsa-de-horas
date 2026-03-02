@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { iniciativaModel, totales } from '../../core/models/iniciativa-model';
 import { environment } from '../../../environments/environment';
@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 export class IniciativaService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/iniciativas`;
+  private totalesUrl = `${environment.apiUrl}/totales`;
 
   getIniciativas(): Observable<iniciativaModel[]> {
     return this.http.get<iniciativaModel[]>(this.apiUrl);
@@ -39,7 +40,19 @@ export class IniciativaService {
   }
 
   getTotales(): Observable<totales> {
-    return this.http.get<totales>(`${environment.apiUrl}/dashboard/totales`);
+    return this.http.get<totales>(`${this.totalesUrl}`);
+  }
+
+  /**
+   * Obtener totales calculados en tiempo real para un rango de fechas.
+   * @param fechaInicio Fecha inicio (YYYY-MM-DD). Opcional: si falta, el backend infiere el registro más antiguo.
+   * @param fechaFin    Fecha fin (YYYY-MM-DD). Opcional: si falta, el backend infiere la fecha actual.
+   */
+  getTotalesPorFecha(fechaInicio?: string, fechaFin?: string): Observable<totales> {
+    let params = new HttpParams();
+    if (fechaInicio) params = params.set('fecha_inicio', fechaInicio);
+    if (fechaFin) params = params.set('fecha_fin', fechaFin);
+    return this.http.get<totales>(`${this.totalesUrl}/por-fecha`, { params });
   }
 
   getHorasPorMes(): Observable<{ mes: string; horas: number }[]> {
@@ -48,3 +61,4 @@ export class IniciativaService {
     );
   }
 }
+

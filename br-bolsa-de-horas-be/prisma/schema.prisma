@@ -100,3 +100,22 @@ model ParametrosSistema {
 
   @@map("parametros_sistema")
 }
+
+// ============================
+// AUDIT LOG
+// ============================
+
+model AuditLog {
+  id             BigInt   @id @default(autoincrement())
+  fecha          DateTime @default(now()) @db.Timestamptz()
+  keycloakUserId String   @map("keycloak_user_id") @db.Uuid
+  email          String   @db.VarChar(255)
+  accion         String   @db.VarChar(20)
+  tabla          String   @db.VarChar(100)
+  registroId     String?  @map("registro_id") @db.VarChar(100)
+  valorViejo     Json?    @map("valor_viejo")
+  valorNuevo     Json?    @map("valor_nuevo")
+  estatus        String   @default("EXITOSO") @db.VarChar(10)
+
+  @@map("audit_log")
+}

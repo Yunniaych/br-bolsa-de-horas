@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { TablaIniciativas } from '../componentes/tabla-iniciativas/tabla-iniciativas';
 import { iniciativaModel, totales } from '../../core/models/iniciativa-model';
 import { IniciativaService } from '../services/iniciativa-service';
@@ -10,10 +10,11 @@ import {
 import { Dialog } from '@angular/cdk/dialog';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { AuthService } from '../../core/services/auth.service';
+import { DatePickerDirective } from '../../shared/directives/date-picker-directive';
 
 @Component({
   selector: 'app-iniciativas-page',
-  imports: [TablaIniciativas, Totales],
+  imports: [TablaIniciativas, Totales, DatePickerDirective],
   templateUrl: './iniciativas-page.html',
   styleUrl: './iniciativas-page.scss',
 })
@@ -22,7 +23,35 @@ export class IniciativasPage implements OnInit {
   dialog = inject(Dialog);
   authService = inject(AuthService);
 
-  iniciativas = signal<iniciativaModel[]>([]);
+  // Dataset completo (nunca se toca tras la carga)
+  private _iniciativas = signal<iniciativaModel[]>([]);
+
+  // Señales de filtro
+  fechaFiltroInicio = signal<string | undefined>(undefined);
+  fechaFiltroFin = signal<string | undefined>(undefined);
+  /** Incrementar para disparar fp.clear() en ambos date pickers */
+  clearCounter = signal<number>(0);
+
+  /** Lista visible, filtrada por fecha_aprobada dentro del rango seleccionado */
+  iniciativas = computed(() => {
+    const inicio = this.fechaFiltroInicio();
+    const fin = this.fechaFiltroFin();
+    const all = this._iniciativas();
+
+    if (!inicio && !fin) return all;
+
+    const iniDate = inicio ? this._parseDate(inicio) : null;
+    const finDate = fin ? this._parseDate(fin) : null;
+
+    return all.filter((i) => {
+      const f = new Date(i.fechaAprobada);
+      f.setHours(0, 0, 0, 0);
+      if (iniDate && f < iniDate) return false;
+      if (finDate && f > finDate) return false;
+      return true;
+    });
+  });
+
   maxManDays = signal<number>(0);
   totalesData = signal<totales>({
     mandayReservadas: 0,
@@ -46,20 +75,66 @@ export class IniciativasPage implements OnInit {
 
   loadIniciativas() {
     this.iniciativaService.getIniciativas().subscribe((iniciativas) => {
-      // Ensure stable order: older (smaller id) -> newer (larger id)
       const sorted = iniciativas
         .slice()
         .sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
-      this.iniciativas.set(sorted);
+      this._iniciativas.set(sorted);
     });
   }
 
   loadTotales() {
-    this.iniciativaService.getTotales().subscribe((totales) => {
-      this.maxManDays.set(totales.mandayDisponibles);
-      this.totalesData.set(totales);
-    });
+    const inicio = this.fechaFiltroInicio();
+    const fin = this.fechaFiltroFin();
+
+    if (!inicio && !fin) {
+      this.iniciativaService.getTotales().subscribe((totales) => {
+        this.maxManDays.set(totales.mandayDisponibles);
+        this.totalesData.set(totales);
+      });
+    } else {
+      this.iniciativaService
+        .getTotalesPorFecha(inicio, fin)
+        .subscribe((totales) => {
+          this.maxManDays.set(totales.mandayDisponibles);
+          this.totalesData.set(totales);
+        });
+    }
   }
+
+  // ──────────────── Filtro de fechas ────────────────
+
+  onFechaInicioChange(date: Date | null) {
+    this.fechaFiltroInicio.set(date ? this._toISODate(date) : undefined);
+    this.loadTotales();
+  }
+
+  onFechaFinChange(date: Date | null) {
+    this.fechaFiltroFin.set(date ? this._toISODate(date) : undefined);
+    this.loadTotales();
+  }
+
+  limpiarFiltro() {
+    this.fechaFiltroInicio.set(undefined);
+    this.fechaFiltroFin.set(undefined);
+    this.clearCounter.update((v) => v + 1);
+    this.loadTotales();
+  }
+
+  private _toISODate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  private _parseDate(iso: string): Date {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  }
+
+  // ──────────────── Dialogs ────────────────
 
   openCreateDialog() {
     const dialogRef = this.dialog.open<iniciativaModel, IniciativaDialogData>(
@@ -107,14 +182,14 @@ export class IniciativasPage implements OnInit {
   }
 
   onEditIniciativa(id: number) {
-    const iniciativa = this.iniciativas().find((i) => i.id === id);
+    const iniciativa = this._iniciativas().find((i) => i.id === id);
     if (iniciativa) {
       this.openEditDialog(iniciativa);
     }
   }
 
   onDeleteIniciativa(id: number) {
-    const iniciativa = this.iniciativas().find((i) => i.id === id);
+    const iniciativa = this._iniciativas().find((i) => i.id === id);
     const mensaje = iniciativa
       ? `¿Está seguro de eliminar la iniciativa "${iniciativa.nombre}"?`
       : '¿Está seguro de eliminar esta iniciativa?';
@@ -136,3 +211,4 @@ export class IniciativasPage implements OnInit {
     });
   }
 }
+

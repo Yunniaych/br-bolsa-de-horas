@@ -4,12 +4,13 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { validateToken } from "./middleware/jwt.middleware";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
+import { auditContext } from "./middleware/audit.middleware";
 
 // Importar rutas
 import iniciativasRoutes from "./routes/iniciativas.routes";
 import bolsasRoutes from "./routes/bolsas.routes";
 
-import dashboardRoutes from "./routes/dashboard.routes";
+import dashboardRoutes from "./routes/totales.routes";
 import estadosRoutes from "./routes/estados.routes";
 
 export const createApp = (): Application => {
@@ -41,6 +42,9 @@ export const createApp = (): Application => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Contexto de auditoría: extrae keycloak_user_id y email del JWT
+  app.use(auditContext);
+
   // ============================
   // RUTAS DE SALUD
   // ============================
@@ -62,7 +66,7 @@ export const createApp = (): Application => {
         health: "/health",
         iniciativas: "/api/iniciativas",
         bolsas: "/api/bolsas",
-        dashboard: "/api/dashboard",
+        totales: "/api/totales",
       },
     });
   });
@@ -77,7 +81,7 @@ export const createApp = (): Application => {
   // Rutas específicas
   app.use("/api/iniciativas", iniciativasRoutes);
   app.use("/api/bolsas", bolsasRoutes);
-  app.use("/api/dashboard", dashboardRoutes);
+  app.use("/api/totales", dashboardRoutes);
   app.use("/api/estados", estadosRoutes);
 
   // ============================

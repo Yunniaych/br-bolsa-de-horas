@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import bolsasService from "../services/bolsas.service";
+import { createAuditLog } from "../services/audit.service";
+
+const TABLE = "bolsa_horas";
 
 export class BolsasController {
   /**
@@ -37,9 +40,25 @@ export class BolsasController {
         fechaInicio: new Date(req.body.fechaInicio),
         fechaFin: new Date(req.body.fechaFin),
       };
+
       const bolsa = await bolsasService.create(data);
+
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "CREATE",
+        table_name: TABLE,
+        record_id: String(bolsa.idBolsa),
+        new_values: bolsa,
+      });
+
       res.status(201).json(bolsa);
     } catch (error) {
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "CREATE",
+        table_name: TABLE,
+        status: "FALLIDO",
+      });
       next(error);
     }
   }
@@ -59,9 +78,28 @@ export class BolsasController {
         data.fechaFin = new Date(data.fechaFin);
       }
 
+      // Obtener registro anterior antes de modificar
+      const oldRecord = await bolsasService.getById(id);
       const bolsa = await bolsasService.update(id, data);
+
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "UPDATE",
+        table_name: TABLE,
+        record_id: String(id),
+        old_values: oldRecord,
+        new_values: bolsa,
+      });
+
       res.json(bolsa);
     } catch (error) {
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "UPDATE",
+        table_name: TABLE,
+        record_id: String(req.params.id),
+        status: "FALLIDO",
+      });
       next(error);
     }
   }
@@ -72,9 +110,28 @@ export class BolsasController {
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const id = parseInt(req.params.id as string);
+
+      // Obtener registro antes de eliminar
+      const oldRecord = await bolsasService.getById(id);
       await bolsasService.delete(id);
+
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "DELETE",
+        table_name: TABLE,
+        record_id: String(id),
+        old_values: oldRecord,
+      });
+
       res.status(204).send();
     } catch (error) {
+      await createAuditLog({
+        ...(req.auditUser ?? { keycloak_user_id: "", email: "" }),
+        action: "DELETE",
+        table_name: TABLE,
+        record_id: String(req.params.id),
+        status: "FALLIDO",
+      });
       next(error);
     }
   }

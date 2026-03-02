@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { BolsaCard } from '../componentes/bolsa-card/bolsa-card';
 import {
   BolsasService,
@@ -12,10 +12,11 @@ import {
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { IniciativaService } from '../../iniciativas/services/iniciativa-service';
 import { AuthService } from '../../core/services/auth.service';
+import { DatePickerDirective } from '../../shared/directives/date-picker-directive';
 
 @Component({
   selector: 'app-gestion-bolsas-page',
-  imports: [BolsaCard],
+  imports: [BolsaCard, DatePickerDirective],
   templateUrl: './gestion-bolsas-page.html',
   styleUrl: './gestion-bolsas-page.scss',
 })
@@ -26,7 +27,44 @@ export class GestionBolsasPage implements OnInit {
   authService = inject(AuthService);
 
   totalHoras = signal<number>(0);
-  bolsas = signal<BolsaHoras[]>([]);
+
+  // Dataset completo (más nuevo primero)
+  private _bolsas = signal<BolsaHoras[]>([]);
+
+  // Señales de filtro
+  fechaFiltroInicio = signal<string | undefined>(undefined);
+  fechaFiltroFin = signal<string | undefined>(undefined);
+  /** Incrementar para disparar fp.clear() en ambos date pickers */
+  clearCounter = signal<number>(0);
+
+  /**
+   * Bolsas visibles: filtradas por solapamiento de vigencia con el rango seleccionado.
+   * Solapamiento: bolsa.fechaInicio <= fechaFin Y bolsa.fechaFin >= fechaInicio
+   */
+  bolsas = computed(() => {
+    const inicio = this.fechaFiltroInicio();
+    const fin = this.fechaFiltroFin();
+    const all = this._bolsas();
+
+    if (!inicio && !fin) return all;
+
+    const iniDate = inicio ? this._parseDate(inicio) : null;
+    const finDate = fin ? this._parseDate(fin) : null;
+
+    return all.filter((b) => {
+      const bInicio = new Date(b.fechaInicio);
+      const bFin = new Date(b.fechaFin);
+      bInicio.setHours(0, 0, 0, 0);
+      bFin.setHours(0, 0, 0, 0);
+
+      // Excluir si la bolsa termina antes de que empiece el rango
+      if (finDate && bInicio > finDate) return false;
+      // Excluir si la bolsa empieza después de que termine el rango
+      if (iniDate && bFin < iniDate) return false;
+      return true;
+    });
+  });
+
   isAdmin = signal<boolean>(false);
 
   ngOnInit() {
@@ -36,20 +74,66 @@ export class GestionBolsasPage implements OnInit {
   }
 
   loadTotales() {
-    this.iniciativaService.getTotales().subscribe((totales) => {
-      this.totalHoras.set(totales.bolsaHorasContratadas);
-    });
+    const inicio = this.fechaFiltroInicio();
+    const fin = this.fechaFiltroFin();
+
+    if (!inicio && !fin) {
+      this.iniciativaService.getTotales().subscribe((totales) => {
+        this.totalHoras.set(totales.bolsaHorasContratadas);
+      });
+    } else {
+      this.iniciativaService
+        .getTotalesPorFecha(inicio, fin)
+        .subscribe((totales) => {
+          this.totalHoras.set(totales.bolsaHorasContratadas);
+        });
+    }
   }
 
   loadBolsas() {
     this.bolsasService.getBolsas().subscribe((bolsas) => {
-      // Ensure stable order: older (smaller idBolsa) -> newer (larger idBolsa)
+      // Más nuevo primero (id descendente)
       const sorted = bolsas
         .slice()
-        .sort((a, b) => (a.idBolsa ?? 0) - (b.idBolsa ?? 0));
-      this.bolsas.set(sorted);
+        .sort((a, b) => (b.idBolsa ?? 0) - (a.idBolsa ?? 0));
+      this._bolsas.set(sorted);
     });
   }
+
+  // ──────────────── Filtro de fechas ────────────────
+
+  onFechaInicioChange(date: Date | null) {
+    this.fechaFiltroInicio.set(date ? this._toISODate(date) : undefined);
+    this.loadTotales();
+  }
+
+  onFechaFinChange(date: Date | null) {
+    this.fechaFiltroFin.set(date ? this._toISODate(date) : undefined);
+    this.loadTotales();
+  }
+
+  limpiarFiltro() {
+    this.fechaFiltroInicio.set(undefined);
+    this.fechaFiltroFin.set(undefined);
+    this.clearCounter.update((v) => v + 1);
+    this.loadTotales();
+  }
+
+  private _toISODate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  private _parseDate(iso: string): Date {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  }
+
+  // ──────────────── Dialogs ────────────────
 
   openCreateDialog() {
     const dialogRef = this.dialog.open<BolsaHoras, BolsaDialogData>(BolsaForm, {
@@ -89,14 +173,14 @@ export class GestionBolsasPage implements OnInit {
   }
 
   onEditBolsa(id: number) {
-    const bolsa = this.bolsas().find((b) => b.idBolsa === id);
+    const bolsa = this._bolsas().find((b) => b.idBolsa === id);
     if (bolsa) {
       this.openEditDialog(bolsa);
     }
   }
 
   onDeleteBolsa(id: number) {
-    const bolsa = this.bolsas().find((i) => i.idBolsa === id);
+    const bolsa = this._bolsas().find((i) => i.idBolsa === id);
     const mensaje = bolsa
       ? `¿Está seguro de eliminar la bolsa "${bolsa.nombreBolsa}"?`
       : '¿Está seguro de eliminar esta bolsa?';
@@ -118,3 +202,4 @@ export class GestionBolsasPage implements OnInit {
     });
   }
 }
+

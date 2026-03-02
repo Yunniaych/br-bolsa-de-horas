@@ -1,7 +1,63 @@
 <div class="mx-5 my-6">
-  <h1 class="font-bold text-2xl text-primary">Gestión de Iniciativas</h1>
-  @if (isAdmin()) {
-    <div class="flex justify-end mb-4">
+  <h1 class="font-bold text-2xl text-primary mb-2">Gestión de Iniciativas</h1>
+
+  <!-- Barra superior: filtro de fechas + botón agregar -->
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+
+    <!-- Filtro fecha inicio -->
+    <div
+      appDatePickerDirective
+      (dateChange)="onFechaInicioChange($event)"
+      [clearTrigger]="clearCounter()"
+      class="relative flex items-center"
+    >
+      <input
+        data-input
+        placeholder="Desde DD/MM/YYYY"
+        class="w-45 px-3 py-2 pr-9 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <button type="button" data-toggle class="absolute right-2 text-gray-400 hover:text-blue-500 hover:cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Filtro fecha fin -->
+    <div
+      appDatePickerDirective
+      (dateChange)="onFechaFinChange($event)"
+      [clearTrigger]="clearCounter()"
+      class="relative flex items-center"
+    >
+      <input
+        data-input
+        placeholder="Hasta DD/MM/YYYY"
+        class="w-45 px-3 py-2 pr-9 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <button type="button" data-toggle class="absolute right-2 text-gray-400 hover:text-blue-500 hover:cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Limpiar filtro -->
+    @if (fechaFiltroInicio() || fechaFiltroFin()) {
+      <button
+        (click)="limpiarFiltro()"
+        class="px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 hover:cursor-pointer transition"
+      >
+        Limpiar filtro
+      </button>
+    }
+
+    <!-- Spacer -->
+    <div class="flex-1"></div>
+
+    @if (isAdmin()) {
       <button
         (click)="openCreateDialog()"
         class="bg-terciary shadow-md rounded-md hover:opacity-85 hover:cursor-pointer px-4 py-2 text-white font-semibold hover:bg-opacity-90 transition"
@@ -13,8 +69,8 @@
         />
         Agregar Iniciativa
       </button>
-    </div>
-  }
+    }
+  </div>
 
   <app-tabla-iniciativas
     [iniciativas]="iniciativas()"
