@@ -48,7 +48,10 @@ export class IniciativaService {
    * @param fechaInicio Fecha inicio (YYYY-MM-DD). Opcional: si falta, el backend infiere el registro más antiguo.
    * @param fechaFin    Fecha fin (YYYY-MM-DD). Opcional: si falta, el backend infiere la fecha actual.
    */
-  getTotalesPorFecha(fechaInicio?: string, fechaFin?: string): Observable<totales> {
+  getTotalesPorFecha(
+    fechaInicio?: string,
+    fechaFin?: string,
+  ): Observable<totales> {
     let params = new HttpParams();
     if (fechaInicio) params = params.set('fecha_inicio', fechaInicio);
     if (fechaFin) params = params.set('fecha_fin', fechaFin);
@@ -61,4 +64,3 @@ export class IniciativaService {
     );
   }
 }
-

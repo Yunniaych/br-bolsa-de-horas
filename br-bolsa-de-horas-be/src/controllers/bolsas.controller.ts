@@ -37,8 +37,6 @@ export class BolsasController {
     try {
       const data = {
         ...req.body,
-        fechaInicio: new Date(req.body.fechaInicio),
-        fechaFin: new Date(req.body.fechaFin),
       };
 
       const bolsa = await bolsasService.create(data);
@@ -70,13 +68,6 @@ export class BolsasController {
     try {
       const id = parseInt(req.params.id as string);
       const data = req.body;
-
-      if (data.fechaInicio) {
-        data.fechaInicio = new Date(data.fechaInicio);
-      }
-      if (data.fechaFin) {
-        data.fechaFin = new Date(data.fechaFin);
-      }
 
       // Obtener registro anterior antes de modificar
       const oldRecord = await bolsasService.getById(id);

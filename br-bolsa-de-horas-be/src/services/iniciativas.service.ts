@@ -1,4 +1,5 @@
 import prisma from "../config/database";
+import { parseLocalDate } from "../utils/date.utils";
 
 export class IniciativaService {
   /**
@@ -38,7 +39,7 @@ export class IniciativaService {
    */
   async create(data: {
     nombre: string;
-    fechaAprobada: Date;
+    fechaAprobada: string;
     idEstado?: number;
     estado?: string;
     mandayReservadas?: number;
@@ -71,7 +72,7 @@ export class IniciativaService {
     return prisma.iniciativa.create({
       data: {
         nombre: data.nombre,
-        fechaAprobada: data.fechaAprobada,
+        fechaAprobada: parseLocalDate(data.fechaAprobada),
         idEstado: estadoId,
         mandayReservadas: data.mandayReservadas || data.manDayReserva || 0,
         horasReservadas: data.horasReservadas || data.HorasReservadas || 0,
@@ -93,7 +94,7 @@ export class IniciativaService {
     id: number,
     data: Partial<{
       nombre: string;
-      fechaAprobada: Date;
+      fechaAprobada: string;
       idEstado: number;
       estado: string;
       mandayReservadas: number;
@@ -125,7 +126,9 @@ export class IniciativaService {
 
     const updateData: any = {
       nombre: data.nombre,
-      fechaAprobada: data.fechaAprobada,
+      fechaAprobada: data.fechaAprobada
+        ? parseLocalDate(data.fechaAprobada)
+        : undefined,
     };
 
     if (estadoId) {
@@ -227,12 +230,11 @@ export class IniciativaService {
 
     for (let i = 5; i >= 0; i--) {
       const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+      const targetYear = fecha.getFullYear();
+      const targetMonth = fecha.getMonth(); // 0-based
       const iniciativasDelMes = iniciativas.filter((ini: any) => {
-        const fechaAprob = new Date(ini.fechaAprobada);
-        return (
-          fechaAprob.getFullYear() === fecha.getFullYear() &&
-          fechaAprob.getMonth() === fecha.getMonth()
-        );
+        const d: Date = ini.fechaAprobada as Date;
+        return d.getUTCFullYear() === targetYear && d.getUTCMonth() === targetMonth;
       });
 
       const totalHoras = iniciativasDelMes.reduce(

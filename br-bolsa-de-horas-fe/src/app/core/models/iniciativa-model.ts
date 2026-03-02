@@ -1,7 +1,7 @@
 export interface iniciativaModel {
   id: number;
   nombre: string;
-  fechaAprobada: Date;
+  fechaAprobada: string;
   idEstado: number;
   estado?: {
     idEstado: number;
@@ -36,8 +36,8 @@ export interface totales {
 export interface bolsaHoras {
   idBolsa: number;
   nombreBolsa: string;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: string;
+  fechaFin: string;
   horasContratadas: number;
   mandayContratados: number;
   idEstado: number;

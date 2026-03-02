@@ -14,6 +14,7 @@ import {
   BolsaHoras,
 } from '../../services/bolsas-service/bolsas-service';
 import { DatePickerDirective } from '../../../shared/directives/date-picker-directive';
+import { toDateString, todayString } from '../../../shared/utils/date.utils';
 
 
 export interface BolsaDialogData {
@@ -63,7 +64,6 @@ export class BolsaForm implements OnInit {
   }
 
   private initForm(estados: Estado[]) {
-  const today = new Date();
   const defaultEstado = estados.length > 0 ? estados[0].idEstado : null;
   const fechaFinValidators = [Validators.required];
   if (!this.isEditMode) {
@@ -71,19 +71,19 @@ export class BolsaForm implements OnInit {
   }
   this.bolsaForm = this.fb.group({
     nombreBolsa: ['', [Validators.required, Validators.minLength(3)]],
-    fechaInicio: [today, [Validators.required]],
-    fechaFin: [null as Date | null, fechaFinValidators],
+    fechaInicio: [todayString(), [Validators.required]],
+    fechaFin: [null as string | null, fechaFinValidators],
     mandayContratados: [1, [Validators.required, Validators.min(1)]],
     horasContratadas: [8, [Validators.required, Validators.min(1)]],
     idEstado: [defaultEstado, Validators.required],
   });
 }
 
-  onFechaInicioChange(date: Date | null) {
+  onFechaInicioChange(date: string | null) {
     this.bolsaForm.get('fechaInicio')?.setValue(date);
   }
 
-  onFechaFinChange(date: Date | null) {
+  onFechaFinChange(date: string | null) {
     this.bolsaForm.get('fechaFin')?.setValue(date);
   }
 
@@ -120,8 +120,8 @@ export class BolsaForm implements OnInit {
   private loadBolsaData(bolsa: BolsaHoras) {
     this.bolsaForm.patchValue({
       nombreBolsa: bolsa.nombreBolsa,
-      fechaInicio: bolsa.fechaInicio,
-      fechaFin: bolsa.fechaFin,
+      fechaInicio: toDateString(bolsa.fechaInicio),
+      fechaFin: toDateString(bolsa.fechaFin),
       mandayContratados: bolsa.mandayContratados,
       horasContratadas: bolsa.horasContratadas,
       idEstado: bolsa.idEstado,
@@ -133,10 +133,10 @@ export class BolsaForm implements OnInit {
   private futureDateValidator() {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) return null;
-      const selected = new Date(control.value);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return selected <= today ? { pastDate: true } : null;
+      const selected: string = (control.value as string).substring(0, 10);
+      const t = new Date();
+      const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+      return selected <= todayStr ? { pastDate: true } : null;
     };
   }
 

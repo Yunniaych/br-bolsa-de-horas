@@ -1,4 +1,5 @@
 import prisma from "../config/database";
+import { parseLocalDate } from "../utils/date.utils";
 
 export class TotalesService {
   /**
@@ -46,16 +47,24 @@ export class TotalesService {
    * - Si solo se pasa inicio, fin se infiere como la fecha actual.
    * - Si solo se pasa fin, inicio se infiere como la fecha del registro más antiguo.
    */
-  async getTotalesPorFecha(inicio?: Date, fin?: Date) {
+  async getTotalesPorFecha(inicio?: string, fin?: string) {
+    // Helper para string YYYY-MM-DD de hoy
+    const todayStr = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+
     // Inferir fecha de fin → hoy si no se proporcionó
-    const fechaFin: Date = fin ?? new Date();
+    const fechaFinStr: string = fin ?? todayStr();
+    const fechaFin: Date = parseLocalDate(fechaFinStr);
 
     // Inferir fecha de inicio → registro más antiguo de cada tabla
-    let fechaInicio: Date;
+    let fechaInicioStr: string;
     if (inicio) {
-      fechaInicio = inicio;
+      fechaInicioStr = inicio;
     } else {
       // Buscar fecha mínima de bolsas e iniciativas
+      // Prisma devuelve objetos Date para campos DateTime
       const [minBolsa, minIniciativa] = await Promise.all([
         prisma.bolsaHoras.findFirst({ orderBy: { fechaInicio: "asc" } }),
         prisma.iniciativa.findFirst({ orderBy: { fechaAprobada: "asc" } }),
@@ -63,14 +72,16 @@ export class TotalesService {
 
       const candidates: Date[] = [];
       if (minBolsa?.fechaInicio) candidates.push(new Date(minBolsa.fechaInicio));
-      if (minIniciativa?.fechaAprobada)
-        candidates.push(new Date(minIniciativa.fechaAprobada));
+      if (minIniciativa?.fechaAprobada) candidates.push(new Date(minIniciativa.fechaAprobada));
 
-      fechaInicio =
+      const minDate =
         candidates.length > 0
           ? new Date(Math.min(...candidates.map((d) => d.getTime())))
           : new Date(0);
+
+      fechaInicioStr = `${minDate.getUTCFullYear()}-${String(minDate.getUTCMonth() + 1).padStart(2, "0")}-${String(minDate.getUTCDate()).padStart(2, "0")}`;
     }
+    const fechaInicio: Date = parseLocalDate(fechaInicioStr);
 
     // Sumar campos de iniciativa cuya fecha_aprobada cae dentro del rango
     const iniciativas = await prisma.iniciativa.findMany({
@@ -97,14 +108,8 @@ export class TotalesService {
     const horasReservadas = sum(iniciativas, "horasReservadas");
     const mandayConsumidas = sum(iniciativas, "mandayConsumidos");
     const horasConsumidas = sum(iniciativas, "horasConsumidas");
-    const mandayAprobadasDisponibles = sum(
-      iniciativas,
-      "mandayAprobadasDisponibles",
-    );
-    const horasAprobadasDisponibles = sum(
-      iniciativas,
-      "horasAprobadasDisponibles",
-    );
+    const mandayAprobadasDisponibles = sum(iniciativas, "mandayAprobadasDisponibles");
+    const horasAprobadasDisponibles = sum(iniciativas, "horasAprobadasDisponibles");
 
     // Sumar bolsas cuya vigencia se solapa con el rango (sin filtro de estado)
     const bolsas = await prisma.bolsaHoras.findMany({

@@ -6,8 +6,8 @@ import { environment } from '../../../../environments/environment';
 export interface BolsaHoras {
   idBolsa: number;
   nombreBolsa: string;
-  fechaInicio: Date;
-  fechaFin: Date;
+  fechaInicio: string;
+  fechaFin: string;
   horasContratadas: number;
   mandayContratados: number;
   idEstado: number;

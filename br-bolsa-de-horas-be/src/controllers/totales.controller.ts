@@ -66,24 +66,14 @@ export class TotalesController {
         return;
       }
 
-      const parseDate = (s: string) => {
-        const [y, m, d] = s.split("-").map(Number);
-        return new Date(y, m - 1, d);
-      };
-
-      let inicio: Date | undefined = fecha_inicio
-        ? parseDate(fecha_inicio)
-        : undefined;
-      let fin: Date | undefined = fecha_fin ? parseDate(fecha_fin) : undefined;
-
-      if (inicio && fin && inicio > fin) {
+      if (fecha_inicio && fecha_fin && fecha_inicio > fecha_fin) {
         res
           .status(400)
           .json({ error: "fecha_inicio no puede ser mayor que fecha_fin" });
         return;
       }
 
-      const totales = await totalesService.getTotalesPorFecha(inicio, fin);
+      const totales = await totalesService.getTotalesPorFecha(fecha_inicio, fecha_fin);
       res.json(totales);
     } catch (error) {
       next(error);

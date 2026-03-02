@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { iniciativaModel } from '../../../core/models/iniciativa-model';
 import { IniciativaService } from '../../services/iniciativa-service';
 import { EstadosService, Estado } from '../../../core/services/estados.service';
@@ -13,6 +13,7 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { DatePickerDirective } from '../../../shared/directives/date-picker-directive';
+import { toDateString, todayString } from '../../../shared/utils/date.utils';
 
 export interface IniciativaDialogData {
   iniciativa?: iniciativaModel;
@@ -27,6 +28,8 @@ export interface IniciativaDialogData {
   styleUrl: './iniciativas-form.scss',
 })
 export class IniciativasForm implements OnInit {
+  @ViewChild(DatePickerDirective) private datePicker?: DatePickerDirective;
+
   iniciativaService = inject(IniciativaService);
   totales = this.iniciativaService.getTotales();
   estadosService = inject(EstadosService);
@@ -42,7 +45,7 @@ export class IniciativasForm implements OnInit {
   private isCalculating = false;
   private initialFormValues: any;
 
-  onFechaAprobadaChange(date: Date | null) {
+  onFechaAprobadaChange(date: string | null) {
     this.iniciativaForm.get('fechaAprobada')?.setValue(date);
     this.iniciativaForm.get('fechaAprobada')?.markAsTouched();
   }
@@ -67,8 +70,6 @@ export class IniciativasForm implements OnInit {
   }
 
   private initForm() {
-    
-    const today = new Date();
     const defaultEstado =
       this.estadosDisponibles.length > 0
         ? this.estadosDisponibles[0].idEstado
@@ -76,7 +77,7 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm = this.fb.group(
       {
         nombre: ['', [Validators.required, Validators.minLength(3)]],
-        fechaAprobada: [today, [Validators.required, this.maxDateValidator()]],
+        fechaAprobada: [this.isEditMode ? null : todayString(), [Validators.required, this.maxDateValidator()]],
         idEstado: [defaultEstado, Validators.required],
         manDayReserva: [
           1,
@@ -286,7 +287,7 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm.patchValue(
       {
         nombre: iniciativa.nombre,
-        fechaAprobada: new Date(iniciativa.fechaAprobada),
+        fechaAprobada: toDateString(iniciativa.fechaAprobada),
         idEstado: estadoObj ? estadoObj.idEstado : null,
         manDayReserva: iniciativa.mandayReservadas,
         HorasReservadas: iniciativa.horasReservadas,
@@ -301,20 +302,19 @@ export class IniciativasForm implements OnInit {
     this.iniciativaForm.get('fechaAprobada')?.disable({ emitEvent: false });
     this.initialFormValues = this.iniciativaForm.getRawValue();
     this.isCalculating = false;
+    // Actualizar el picker directamente ya que el control está deshabilitado
+    // y el binding del template no dispara el effect correctamente
+    const fecha = toDateString(iniciativa.fechaAprobada);
+    setTimeout(() => this.datePicker?.setDate(fecha));
   }
 
   private maxDateValidator() {
   return (control: AbstractControl): ValidationErrors | null => {
     if (!control.value) return null;
-
-    // Acepta tanto Date como string
-    const selectedDate = new Date(control.value);
-    if (isNaN(selectedDate.getTime())) return { invalidDate: true };
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return selectedDate > today ? { futureDate: true } : null;
+    const selected: string = (control.value as string).substring(0, 10);
+    const t = new Date();
+    const todayStr = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    return selected > todayStr ? { futureDate: true } : null;
   };
 }
 
@@ -348,7 +348,7 @@ export class IniciativasForm implements OnInit {
 
       const iniciativa: Omit<iniciativaModel, 'id'> = {
         ...formValue,
-        fechaAprobada: new Date(formValue.fechaAprobada),
+        fechaAprobada: formValue.fechaAprobada,
         mandayAprobadasDisponibles: this.disponibles.mandayAprobadasDisponibles,
         horasAprobadasDisponibles: this.disponibles.horasAprobadasDisponibles,
         estado: undefined, // No enviar string estado, solo idEstado
@@ -358,7 +358,7 @@ export class IniciativasForm implements OnInit {
         const updatedIniciativa: iniciativaModel = {
           id: this.data.iniciativa.id,
           nombre: formValue.nombre,
-          fechaAprobada: new Date(formValue.fechaAprobada),
+          fechaAprobada: formValue.fechaAprobada,
           idEstado: Number(formValue.idEstado),
           mandayReservadas: Number(
             formValue.mandayReservadas ?? formValue.manDayReserva ?? 0,

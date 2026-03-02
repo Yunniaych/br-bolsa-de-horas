@@ -11,9 +11,10 @@ import {
 import flatpickr from 'flatpickr';
 import { Spanish } from 'flatpickr/dist/l10n/es';
 import { Instance } from 'flatpickr/dist/types/instance';
+import { toDateString } from '../utils/date.utils';
 
 @Directive({
-  selector: '[appDatePickerDirective]', 
+  selector: '[appDatePickerDirective]',
 })
 export class DatePickerDirective implements OnInit, OnDestroy {
   private el = inject(ElementRef);
@@ -21,10 +22,10 @@ export class DatePickerDirective implements OnInit, OnDestroy {
 
   minDate = input<Date | string | undefined>(undefined);
   maxDate = input<Date | string | undefined>(undefined);
-  defaultDate = input<Date | undefined>(undefined);
+  defaultDate = input<Date | string | undefined>(undefined);
   /** Incrementar este valor para limpiar el picker programáticamente */
   clearTrigger = input<number>(0);
-  dateChange = output<Date | null>();
+  dateChange = output<string | null>();
 
   constructor() {
     // Cuando clearTrigger cambia (> 0), limpiar la instancia de flatpickr
@@ -32,6 +33,14 @@ export class DatePickerDirective implements OnInit, OnDestroy {
       const trigger = this.clearTrigger();
       if (trigger > 0 && this.fp) {
         this.fp.clear();
+      }
+    });
+
+    // Cuando defaultDate cambia después de la inicialización (ej: datos async en edit mode)
+    effect(() => {
+      const date = this.defaultDate();
+      if (date && this.fp) {
+        this.fp.setDate(date, false);
       }
     });
   }
@@ -66,12 +75,24 @@ export class DatePickerDirective implements OnInit, OnDestroy {
       maxDate: this.maxDate(),
       defaultDate: this.defaultDate(),
       onChange: (dates) => {
-        console.log('Fecha seleccionada:', dates);
-        this.dateChange.emit(dates[0] ?? null);
+        this.dateChange.emit(dates[0] ? toDateString(dates[0]) : null);
       },
     }) as Instance;
 
+    // Si ya llega defaultDate antes de que se haya inicializado flatpickr
+    // (caso caché síncrona: el effect del constructor se disparó con fp=undefined),
+    // aplicarlo ahora directamente.
+    const initial = this.defaultDate();
+    if (initial) {
+      this.fp.setDate(initial, false);
+    }
+
     console.log('Flatpickr instancia:', this.fp);
+  }
+
+  /** Establece una fecha en la instancia de flatpickr de forma programática. */
+  setDate(date: Date | string) {
+    this.fp?.setDate(date, false);
   }
 
   ngOnDestroy() {

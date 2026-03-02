@@ -1,4 +1,5 @@
 import prisma from "../config/database";
+import { parseLocalDate } from "../utils/date.utils";
 
 export class BolsasService {
   /**
@@ -38,14 +39,18 @@ export class BolsasService {
    */
   async create(data: {
     nombreBolsa: string;
-    fechaInicio: Date;
-    fechaFin: Date;
+    fechaInicio: string;
+    fechaFin: string;
     horasContratadas: number;
     mandayContratados: number;
     idEstado: number;
   }) {
     return prisma.bolsaHoras.create({
-      data,
+      data: {
+        ...data,
+        fechaInicio: parseLocalDate(data.fechaInicio),
+        fechaFin: parseLocalDate(data.fechaFin),
+      },
       include: {
         estado: true,
       },
@@ -59,8 +64,8 @@ export class BolsasService {
     id: number,
     data: Partial<{
       nombreBolsa: string;
-      fechaInicio: Date;
-      fechaFin: Date;
+      fechaInicio: string;
+      fechaFin: string;
       horasContratadas: number;
       mandayContratados: number;
       idEstado: number;
@@ -69,9 +74,18 @@ export class BolsasService {
     // Verificar que existe
     await this.getById(id);
 
+    // Convertir strings de fecha a Date para Prisma
+    const prismaData: any = { ...data };
+    if (typeof prismaData.fechaInicio === "string") {
+      prismaData.fechaInicio = parseLocalDate(prismaData.fechaInicio);
+    }
+    if (typeof prismaData.fechaFin === "string") {
+      prismaData.fechaFin = parseLocalDate(prismaData.fechaFin);
+    }
+
     return prisma.bolsaHoras.update({
       where: { idBolsa: id },
-      data,
+      data: prismaData,
       include: {
         estado: true,
       },

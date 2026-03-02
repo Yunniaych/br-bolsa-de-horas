@@ -37,7 +37,6 @@ export class IniciativaController {
     try {
       const data = {
         ...req.body,
-        fechaAprobada: new Date(req.body.fechaAprobada),
       };
 
       const iniciativa = await iniciativaService.create(data);
@@ -69,10 +68,6 @@ export class IniciativaController {
     try {
       const id = parseInt(req.params.id as string);
       const data = req.body;
-
-      if (data.fechaAprobada) {
-        data.fechaAprobada = new Date(data.fechaAprobada);
-      }
 
       // Obtener registro anterior antes de modificar
       const oldRecord = await iniciativaService.getById(id);

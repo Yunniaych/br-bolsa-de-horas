@@ -49,15 +49,17 @@
   <div
     appDatePickerDirective
     (dateChange)="onFechaAprobadaChange($event)"
-    [defaultDate]="iniciativaForm.get('fechaAprobada')?.value"
+    [defaultDate]="isEditMode ? iniciativaForm.get('fechaAprobada')?.value : 'today'"
     [maxDate]="'today'"
     class="relative flex items-center"
   >
     <input
       data-input
       placeholder="DD/MM/YYYY"
-      [attr.disabled]="isEditMode ? true : null"
-      class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+      [attr.readonly]="isEditMode ? true : null"
+      [class.bg-gray-100]="isEditMode"
+      [class.cursor-not-allowed]="isEditMode"
+      class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
     />
     <button
       type="button"

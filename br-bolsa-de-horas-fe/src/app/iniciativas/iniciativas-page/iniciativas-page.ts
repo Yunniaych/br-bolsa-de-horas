@@ -103,13 +103,13 @@ export class IniciativasPage implements OnInit {
 
   // ──────────────── Filtro de fechas ────────────────
 
-  onFechaInicioChange(date: Date | null) {
-    this.fechaFiltroInicio.set(date ? this._toISODate(date) : undefined);
+  onFechaInicioChange(date: string | null) {
+    this.fechaFiltroInicio.set(date ?? undefined);
     this.loadTotales();
   }
 
-  onFechaFinChange(date: Date | null) {
-    this.fechaFiltroFin.set(date ? this._toISODate(date) : undefined);
+  onFechaFinChange(date: string | null) {
+    this.fechaFiltroFin.set(date ?? undefined);
     this.loadTotales();
   }
 
@@ -211,4 +211,3 @@ export class IniciativasPage implements OnInit {
     });
   }
 }
-
