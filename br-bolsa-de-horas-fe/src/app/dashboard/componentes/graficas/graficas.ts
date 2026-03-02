@@ -2,6 +2,7 @@ import {
   Component,
   input,
   AfterViewInit,
+  OnDestroy,
   ViewChild,
   ElementRef,
   effect,
@@ -17,7 +18,7 @@ Chart.register(...registerables, ChartDataLabels);
   templateUrl: './graficas.html',
   styleUrls: ['./graficas.scss'],
 })
-export class Graficas implements AfterViewInit {
+export class Graficas implements AfterViewInit, OnDestroy {
   @ViewChild('pieChartCanvas') pieChartCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('lineChartCanvas') lineChartCanvas!: ElementRef<HTMLCanvasElement>;
   pieChartData = input<totales | null>();
@@ -25,14 +26,17 @@ export class Graficas implements AfterViewInit {
 
   private chart?: Chart;
   private lineChart?: Chart;
+  private viewInitialized = false;
 
   constructor() {
     effect(() => {
       const currentData = this.pieChartData();
       const lineData = this.lineChartData();
-      // debug logs removed
 
-      if (currentData) {
+      // No renderizar hasta que el DOM esté listo
+      if (!this.viewInitialized) return;
+
+      if (currentData && this.hasNonZeroPieData(currentData)) {
         if (this.chart) {
           this.updateChartData(currentData);
         } else if (this.pieChartCanvas?.nativeElement) {
@@ -55,52 +59,50 @@ export class Graficas implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+    this.viewInitialized = true;
+
     const currentData = this.pieChartData();
-    // debug logs removed
     if (
       currentData &&
-      this.pieChartCanvas &&
-      this.pieChartCanvas.nativeElement
+      this.hasNonZeroPieData(currentData) &&
+      this.pieChartCanvas?.nativeElement
     ) {
       this.createPieChart(currentData);
     }
+
     const lineData = this.lineChartData();
-    // debug logs removed
     if (
       lineData &&
       lineData.length > 0 &&
-      this.lineChartCanvas &&
-      this.lineChartCanvas.nativeElement
+      this.lineChartCanvas?.nativeElement
     ) {
       this.createLineChart(lineData);
     }
   }
 
+  ngOnDestroy() {
+    this.chart?.destroy();
+    this.lineChart?.destroy();
+    this.chart = undefined;
+    this.lineChart = undefined;
+  }
+
+  private hasNonZeroPieData(pieData: totales): boolean {
+    return (
+      (pieData.horasDisponibles ?? 0) !== 0 ||
+      (pieData.horasConsumidas ?? 0) !== 0 ||
+      (pieData.horasAprobadasDisponibles ?? 0) !== 0
+    );
+  }
+
   hasData(): boolean {
     const pieData = this.pieChartData();
     const lineData = this.lineChartData();
-
-    const hasPieData =
-      pieData &&
-      ((pieData.horasDisponibles ?? 0) !== 0 ||
-        (pieData.horasConsumidas ?? 0) !== 0 ||
-        (pieData.horasAprobadasDisponibles ?? 0) !== 0);
-    if (!hasPieData && (!lineData || lineData.length === 0)) {
-      return false;
-    }
-    // Mostrar mensaje si todos los valores son cero
-    const allPieZero =
-      pieData &&
-      (pieData.horasDisponibles ?? 0) === 0 &&
-      (pieData.horasConsumidas ?? 0) === 0 &&
-      (pieData.horasAprobadasDisponibles ?? 0) === 0;
-    const allLineZero =
-      lineData &&
-      lineData.length > 0 &&
-      lineData.every((d) => (d.horas ?? 0) === 0);
-    if (allPieZero && (allLineZero || !lineData || lineData.length === 0))
-      return false;
-    return true;
+    const hasPie = pieData ? this.hasNonZeroPieData(pieData) : false;
+    const hasLine = lineData
+      ? lineData.some((d) => (d.horas ?? 0) !== 0)
+      : false;
+    return hasPie || hasLine;
   }
 
   createPieChart(totales: totales) {
