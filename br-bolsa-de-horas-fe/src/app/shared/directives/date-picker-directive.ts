@@ -78,9 +78,16 @@ export class DatePickerDirective implements OnInit, OnDestroy {
       // Con esta override, "2026-03-02" crea new Date(2026,2,2) = medianoche LOCAL.
       parseDate: (dateStr: string) => {
         if (dateStr === 'today') return new Date();
+        // ISO format: YYYY-MM-DD (from backend or internal state)
         const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
         if (isoMatch) {
           return new Date(+isoMatch[1], +isoMatch[2] - 1, +isoMatch[3]);
+        }
+        // Display format: d/m/Y (what the input shows — must be handled explicitly
+        // because new Date("03/01/2026") interprets as MM/DD/YYYY in JS)
+        const dmyMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (dmyMatch) {
+          return new Date(+dmyMatch[3], +dmyMatch[2] - 1, +dmyMatch[1]);
         }
         return new Date(dateStr);
       },
