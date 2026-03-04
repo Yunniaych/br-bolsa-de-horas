@@ -11,6 +11,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { ConfirmDialog } from '../../shared/confirm-dialog/confirm-dialog';
 import { AuthService } from '../../core/services/auth.service';
 import { DatePickerDirective } from '../../shared/directives/date-picker-directive';
+import { ExportExcelService } from '../services/export-excel.service';
 
 @Component({
   selector: 'app-iniciativas-page',
@@ -22,6 +23,9 @@ export class IniciativasPage implements OnInit {
   iniciativaService = inject(IniciativaService);
   dialog = inject(Dialog);
   authService = inject(AuthService);
+  exportService = inject(ExportExcelService);
+
+  isExporting = signal<boolean>(false);
 
   // Dataset completo (nunca se toca tras la carga)
   private _iniciativas = signal<iniciativaModel[]>([]);
@@ -117,6 +121,25 @@ export class IniciativasPage implements OnInit {
     this.fechaFiltroFin.set(undefined);
     this.clearCounter.update((v) => v + 1);
     this.loadTotales();
+  }
+
+  // ──────────────── Exportar Excel ────────────────
+
+  async exportarExcel() {
+    this.isExporting.set(true);
+    try {
+      await this.exportService.exportar({
+        fechaDesde: this.fechaFiltroInicio(),
+        fechaHasta: this.fechaFiltroFin(),
+        // Pasar los totales ya cargados para que el chart coincida exactamente
+        // con los datos mostrados en pantalla
+        totalesParaChart: this.totalesData(),
+      });
+    } catch (err) {
+      console.error('[IniciativasPage] Error al exportar Excel:', err);
+    } finally {
+      this.isExporting.set(false);
+    }
   }
 
   private _toISODate(date: Date): string {

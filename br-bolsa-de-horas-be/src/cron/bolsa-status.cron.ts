@@ -3,17 +3,19 @@ import prisma from "../config/database";
 
 /**
  * Cron job para actualizar el estado de las bolsas diariamente
- * Se ejecuta todos los días a medianoche (00:00)
+ * Se ejecuta todos los días a medianoche hora de Santo Domingo (UTC-4)
+ *
+ * IMPORTANTE: El contenedor Docker corre en UTC.
+ * Medianoche SD (UTC-4) = 04:00 UTC → expresión: '0 4 * * *'
+ * NO se usa la opción timezone de node-cron porque en Docker puede
+ * no tener las tzdata disponibles y silenciosamente usar UTC.
  *
  * Llama a la función de PostgreSQL: actualizar_estado_bolsa()
- * que actualiza los estados según los días de preaviso configurados
  */
 export const iniciarCronActualizarEstadoBolsa = () => {
-  // Ejecutar todos los días a medianoche
-  // Formato: segundo minuto hora día mes día-semana
-  // '0 0 * * *' = a las 00:00 todos los días
+  // 04:00 UTC = 00:00 America/Santo_Domingo (UTC-4)
   cron.schedule(
-    "0 0 * * *",
+    "0 4 * * *",
     async () => {
       const timestamp = new Date().toLocaleString("es-DO", {
         timeZone: "America/Santo_Domingo",
@@ -34,13 +36,10 @@ export const iniciarCronActualizarEstadoBolsa = () => {
         );
       }
     },
-    {
-      timezone: "America/Santo_Domingo",
-    },
   );
 
   console.log(
-    "✓ Cron job configurado: actualizar_estado_bolsa (todos los días a 00:00)",
+    "✓ Cron job configurado: actualizar_estado_bolsa (todos los días a 00:00 SD / 04:00 UTC)",
   );
 };
 

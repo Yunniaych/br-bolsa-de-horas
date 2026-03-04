@@ -12,6 +12,7 @@ import bolsasRoutes from "./routes/bolsas.routes";
 
 import dashboardRoutes from "./routes/totales.routes";
 import estadosRoutes from "./routes/estados.routes";
+import exportRoutes from "./routes/export.routes";
 
 export const createApp = (): Application => {
   const app = express();
@@ -83,6 +84,7 @@ export const createApp = (): Application => {
   app.use("/api/bolsas", bolsasRoutes);
   app.use("/api/totales", dashboardRoutes);
   app.use("/api/estados", estadosRoutes);
+  app.use("/api/export", exportRoutes);
 
   // ============================
   // MANEJO DE ERRORES
